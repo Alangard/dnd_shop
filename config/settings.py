@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'api.main.apps.MainConfig',
     'api.category.apps.CategoryConfig',
     'api.store.apps.StoreConfig',
+    'api.carts.apps.CartsConfig',
     
 ]
 
@@ -71,6 +72,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'api.category.context_processors.menu_links',
+                'api.carts.context_processors.counter',
             ],
         },
     },

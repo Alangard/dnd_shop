@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db.models import Q
 
-from ..store.models import Product
+from ..store.models import Product, Variation
 from ..category.models import Category
 from ..carts.models import CartItem
 
@@ -40,11 +40,25 @@ def product_detail(request, category_slug, product_slug):
     try:
         product = Product.objects.get(category__slug = category_slug, slug = product_slug)
         in_cart = CartItem.objects.filter(cart__cart_id = _cart_id(request), product = product).exists()
+
+        variation_dict = {}
+        variations = Variation.objects.filter(product=product)
+
+        for variation in variations:
+            category_name = variation.variation_category.name
+            values = variation.variation_value.values() 
+            value_list = [v['value'] for v in values] 
+            if category_name not in variation_dict:
+                variation_dict[category_name] = []
+            variation_dict[category_name].extend(value_list) 
+
+
     except Exception as e:
         raise e
     
     context = {
         'product': product,
+        'variation_dict': variation_dict,
         'in_cart': in_cart,
     }
 

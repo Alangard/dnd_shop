@@ -32,28 +32,19 @@
       <p>{{ product.description }}</p>
       
       <hr>
-        <div class="row">
-            <div class="item-option-select">
-                <h6>Choose Color</h6>
-                <select name="color" class="form-control" required>
+        {% for category, values in variation_dict.items %}
+          <div class="row">
+              <div class="item-option-select">
+                <h6>Choose {{ category }}</h6>
+                <select name="{{category}}" class="form-control" required>
                   <option value="" disabled selected>---</option>
-                  {% for variation in product.variation_set.colors %}
-                    <option value="{{ variation.variation_value | lower }}">{{ variation.variation_value | capfirst }}</option>
+                  {% for value in values %}
+                    <option value="{{ value }}">{{ value | capfirst }}</option>
                   {% endfor %}
-                </select> 
-            </div>
-        </div> <!-- row.// -->
-        <div class="row">
-            <div class="item-option-select">
-                <h6>Select Size</h6>
-                <select name="size" class="form-control">
-                  <option value="" disabled selected>---</option>
-                  {% for variation in product.variation_set.sizes %}
-                    <option value="{{ variation.variation_value | lower }}">{{ variation.variation_value | capfirst }}</option>
-                  {% endfor %}
-                </select> 
-            </div>
-        </div> <!-- row.// -->
+                </select>
+              </div>
+          </div> 
+        {% endfor %}
         <hr>
         {% if product.stock == 0 %}
           <h5 class="text-danger"> Out of stock </h5>

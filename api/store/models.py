@@ -41,10 +41,34 @@ variation_category_choice = (
     ('size', 'size'),
 )
 
+
+class VariationValue(models.Model):
+    value = models.CharField(max_length=200)
+
+    class Meta:
+        db_table = "Variation_value"
+        verbose_name = "Variation value"
+        verbose_name_plural = "Variation values"
+
+    def __str__(self):
+        return self.value
+
+class VariationCategory(models.Model):
+    name = models.CharField(max_length=200)
+
+    class Meta:
+        db_table = "Variation_category"
+        verbose_name = "Variation category"
+        verbose_name_plural = "Variation categories"
+
+    def __str__(self):
+        return self.name
+
+
 class Variation(models.Model):
     product = models.ForeignKey(Product, on_delete = models.CASCADE)
-    variation_category  = models.CharField(max_length = 200, choices = variation_category_choice)
-    variation_value = models.CharField(max_length = 200)
+    variation_category = models.ForeignKey(VariationCategory, on_delete=models.CASCADE)
+    variation_value = models.ManyToManyField(VariationValue)
     is_active = models.BooleanField(default = True)
     created_date = models.DateTimeField(auto_now = True)
     
@@ -57,7 +81,8 @@ class Variation(models.Model):
 
 
     def __str__(self):
-        return self.variation_value
+        # return self.variation_value
+        return f"{self.product.product_name}/v_c{self.variation_category}/v_vs{self.variation_value.values()}"
 
     
 

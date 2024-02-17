@@ -35,6 +35,10 @@
 
         {% for cart_item  in  cart_items %}
 
+
+            
+
+
             <tr>
                 <td>
                     <figure class="itemside align-items-center">
@@ -44,7 +48,9 @@
                             <p class="text-muted small">
                                 {% if cart_item.variations.all %}
                                     {% for item in cart_item.variations.all %}
-                                        {{ item.variation_category | capfirst }} : {{ item.variation_value | capfirst }} <br>
+                                        {% for value in item.variation_value.all %}
+                                            {{ item.variation_category | capfirst }} : {{ value | capfirst }} <br>
+                                        {% endfor %}
                                     {% endfor %}
                                 {% endif %}
                             </p>
@@ -56,16 +62,20 @@
                     <div class="col"> 
                         <div class="input-group input-spinner">
                                 <div class="input-group-prepend">
-                                    <a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
+                                    <a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" class="btn btn-light" type="button" id="button-minus"> <i class="fa fa-minus"></i> </a>
                                 </div>
                             <input type="text" class="form-control"  value="{{ cart_item.quantity }}">
                                 <div class="input-group-append">
                                     <form action="{% url 'add_cart' cart_item.product.id %}" method="POST">
                                         {% csrf_token %}
-                                        {% for variation in cart_item.variations.all %}
-                                            <input type="hidden" name="{{ variation.variation_category | lower }}" value="{{ variation.variation_value | capfirst}}">
+
+                                        {% for item in cart_item.variations.all %}
+                                            {% for value in item.variation_value.all %}
+                                                <input type="hidden" name="{{ item.variation_category | lower }}" value="{{ value | capfirst}}">
+                                            {% endfor %}
                                         {% endfor %}
-                                        <button type="submit" class="btn btn-light" type="button" id="button-minus"> <i class="fa fa-plus"></i> </button>
+                        
+                                        <button type="submit" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-plus"></i> </button>
                                     </form>
                                 </div>
                         </div> <!-- input-group.// -->

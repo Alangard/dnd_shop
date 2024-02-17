@@ -15,10 +15,8 @@ class CartItemVariations(models.Model):
         verbose_name = "CartItem variation"
         verbose_name_plural = "CartItem variations"
 
-
     def __str__(self):
-        # return self.variation_category.name
-        return f"v_c{self.variation_category}/v_vs{self.variation_value.values()}"
+        return f"{self.variation_category}: {self.variation_value.values()[0]['value']}"
 
 class Cart(models.Model):
     cart_id = models.CharField(max_length = 250, blank = True)

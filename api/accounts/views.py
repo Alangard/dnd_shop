@@ -2,8 +2,12 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
+from django.db import models
+
 from .forms import RegistrationForm
 from .models import Account
+from ..carts.models import Cart, CartItem
+from ..carts.views import _cart_id
 
 #verification email
 from django.contrib.sites.shortcuts import get_current_site
@@ -60,6 +64,33 @@ def login(request):
         user = auth.authenticate(email = email, password = password)
 
         if user is not None:
+            try:
+                cart  = Cart.objects.get(cart_id=_cart_id(request))
+                cart_items = CartItem.objects.filter(cart=cart)  # Find elements with the given cart
+
+                for cart_item in cart_items:
+                    if cart_item.variations.exists():
+                        # Find items with the same name as user
+                        variations_cart_items = CartItem.objects.filter(variations__in=cart_item.variations.all(), user=user)
+
+                        if variations_cart_items.exists():
+                            variations_cart_items.update(quantity=models.F('quantity') + 1)
+                            cart_item.delete()
+                        else:
+                            cart_item.user = user
+                            cart_item.save()
+                    else:
+                        cart_items_without_variations = CartItem.objects.filter(product=cart_item.product, user=user)
+                        
+                        if cart_items_without_variations.exists():
+                            cart_items_without_variations.update(quantity=models.F('quantity') + 1)
+                            cart_item.delete()
+                        else:
+                            cart_item.user = user
+                            cart_item.save()               
+            except:
+                pass
+
             auth.login(request, user)
             messages.success(request, 'You are logged in.')
             return redirect('dashboard')
@@ -126,6 +157,7 @@ def forgotPassword(request):
 
     return render(request, 'accounts/forgotPassword.html')
 
+
 def resetPasswordValidate(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
@@ -139,6 +171,7 @@ def resetPasswordValidate(request, uidb64, token):
     else:
         messages.error(request, 'This link has been expired!')
         return redirect('login')
+
 
 def resetPassword(request):
     if request.method == 'POST':

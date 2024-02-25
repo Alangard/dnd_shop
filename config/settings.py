@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'api.category.apps.CategoryConfig',
     'api.store.apps.StoreConfig',
     'api.carts.apps.CartsConfig',
+    'api.orders.apps.OrdersConfig',
     
 ]
 

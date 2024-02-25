@@ -16,6 +16,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
+import requests
 
 
 def register(request):
@@ -65,6 +66,7 @@ def login(request):
 
         if user is not None:
             try:
+                #Functionality of adding an item to the user's cart when authenticating, if the item was added in cart in anonymous mode
                 cart  = Cart.objects.get(cart_id=_cart_id(request))
                 cart_items = CartItem.objects.filter(cart=cart)  # Find elements with the given cart
 
@@ -93,7 +95,19 @@ def login(request):
 
             auth.login(request, user)
             messages.success(request, 'You are logged in.')
-            return redirect('dashboard')
+
+            #Redirection the user to the page they should have been taken to after authentication
+            url = request.META.get('HTTP_REFERER')
+            try:
+                query = requests.utils.urlparse(url).query
+                params = dict(param.split('=') for param in query.split('&'))
+                
+                if 'next' in params:
+                    nextPageUrl = params['next']
+                    return redirect(nextPageUrl)
+            except:
+                return redirect('dashboard')
+            
         else:
             messages.error(request, 'Invalid login credentials.')
             return redirect('login')

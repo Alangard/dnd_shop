@@ -13,7 +13,7 @@ from ..carts.views import _cart_id
 def store(request, category_slug = None):
     categories = None
     products = None
-    products_per_page = 1
+    products_per_page = 15
 
     if category_slug != None:
         categories = get_object_or_404(Category, slug = category_slug)

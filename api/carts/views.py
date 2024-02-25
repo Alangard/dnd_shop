@@ -15,67 +15,6 @@ def _cart_id(request):
         cart = request.session.create()
     return cart
 
-# def add_cart(request, product_id): 
-#     current_user = request.user
-#     product = Product.objects.get(id=product_id)
-
-#     product_variation = []
-#     if request.method == 'POST':
-#         # Перебираем все переданные поля формы
-#         for item in request.POST:
-#             key = item
-#             value = request.POST[key]
-#             if key != 'csrfmiddlewaretoken':
-#                 variation = None
-#                 try:
-#                     variation =  CartItemVariations.objects.get(variation_category__name__iexact=key, variation_value__value__iexact=value)                                  
-#                 except:
-#                     variation_category = VariationCategory.objects.get(name__iexact=key)
-#                     variation_value = VariationValue.objects.get(value__iexact=value)
-#                     variation = CartItemVariations.objects.create(variation_category=variation_category)
-#                     variation.variation_value.add(variation_value)
-#                 product_variation.append(variation)
-        
-#         if current_user.is_authenticated:
-#             try:
-#                 if product_variation:
-#                     cart_items = CartItem.objects.filter(product=product, user=current_user, variations__in=product_variation)
-#                 else:
-#                     cart_items = CartItem.objects.filter(product=product, user=current_user, variations=None)
-
-#                 if cart_items.exists():
-#                     cart_items.update(quantity=models.F('quantity') + 1)
-#                     return redirect('cart')
-#                 else:
-#                     new_cart_item = CartItem.objects.create(product=product, quantity=1, user=current_user)
-#                     if product_variation:
-#                         new_cart_item.variations.set(product_variation)
-#                     new_cart_item.save() 
-#                     return redirect('cart')
-#             except:
-#                 pass
-#         else:
-#             try:
-#                 cart, created = Cart.objects.get_or_create(cart_id=_cart_id(request))
-#                 if product_variation:
-#                     cart_items = CartItem.objects.filter(product=product, cart=cart, variations__in=product_variation)
-#                 else:
-#                     cart_items = CartItem.objects.filter(product=product, cart=cart, variations=None)
-
-#                 if cart_items.exists():
-#                     cart_items.update(quantity=models.F('quantity') + 1)
-#                     return redirect('cart')
-#                 else:
-#                     new_cart_item = CartItem.objects.create(product=product, quantity=1, cart=cart)
-#                     if product_variation:
-#                         new_cart_item.variations.set(product_variation)
-#                     new_cart_item.save() 
-#                     return redirect('cart')
-#             except:
-#                 pass
-
-#     return redirect('cart')
-
 
 def add_cart(request, product_id):
     current_user = request.user
@@ -125,12 +64,16 @@ def add_cart(request, product_id):
 
     return redirect('cart')
 
+
 def remove_cart(request, product_id, cart_item__id):
-    cart = Cart.objects.get(cart_id = _cart_id(request))
     product = get_object_or_404(Product, id = product_id)
 
     try:
-        cart_item = CartItem.objects.get(product = product, cart = cart, id = cart_item__id)
+        if request.user.is_authenticated:
+                cart_item = CartItem.objects.get(product = product, user = request.user, id = cart_item__id)
+        else:
+            cart = Cart.objects.get(cart_id = _cart_id(request))
+            cart_item = CartItem.objects.get(product = product, cart = cart, id = cart_item__id)
         
         if cart_item.quantity > 1:
             cart_item.quantity -= 1
@@ -143,11 +86,14 @@ def remove_cart(request, product_id, cart_item__id):
 
 
 def remove__cart_item(request, product_id, cart_item__id):
-    cart = Cart.objects.get(cart_id = _cart_id(request))
     product = get_object_or_404(Product, id = product_id)
     
     try:
-        cart_item = CartItem.objects.get(product = product, cart = cart, id = cart_item__id)
+        if request.user.is_authenticated:
+            cart_item = CartItem.objects.get(product = product, user = request.user, id = cart_item__id)
+        else:
+            cart = Cart.objects.get(cart_id = _cart_id(request))
+            cart_item = CartItem.objects.get(product = product, cart = cart, id = cart_item__id)
         cart_item.delete()
     except:
         pass
@@ -165,10 +111,8 @@ def cart(request, total = 0, quantity = 0, cart_items = None):
             cart = Cart.objects.get(cart_id = _cart_id(request))
             cart_items = CartItem.objects.filter(cart = cart, is_active = True).order_by('-quantity')
 
-        for cart_item in cart_items:
-            total += (cart_item.product.price * cart_item.quantity)
-            quantity += cart_item.quantity
-        tax = (2 * total) / 100 # example
+        total = sum(cart_item.product.price * cart_item.quantity for cart_item in cart_items)
+        tax = (2 * total) / 100 #2 is an example
         grand_total = total + tax
 
     except ObjectDoesNotExist:
@@ -190,8 +134,12 @@ def checkout(request, total = 0, quantity = 0, cart_items = None):
     grand_total = 0 
     
     try:
-        cart = Cart.objects.get(cart_id = _cart_id(request))
-        cart_items = CartItem.objects.filter(cart = cart, is_active = True).order_by('-quantity')
+        if request.user.is_authenticated:
+            cart_items = CartItem.objects.filter(user = request.user, is_active = True).order_by('-quantity')
+        else:
+            cart = Cart.objects.get(cart_id = _cart_id(request))
+            cart_items = CartItem.objects.filter(cart = cart, is_active = True).order_by('-quantity')
+            
         for cart_item in cart_items:
             total += (cart_item.product.price * cart_item.quantity)
             quantity += cart_item.quantity

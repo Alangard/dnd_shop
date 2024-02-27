@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 import datetime 
+import json
 
-from .models import Order
+from .models import Order, Payment
 from .forms import OrderForm
 from ..carts.models import CartItem
 
@@ -56,4 +57,22 @@ def place_order(request, total = 0, quantity = 0):
     
 
 def payments(request):
+    body = json.loads(request.body)
+    order = Order.objects.get(user = request.user, is_ordered = False, order_number = body["orderID"])
+    
+    #store trans detail inside payment model
+    payment = Payment(
+         user = request.user,
+         payment_id = body["transID"],
+         payment_method = body["payment_method"],
+         amount_paid = order.order_total,
+         status = body['status']
+    )
+    payment.save()
+
+    order.payment = payment
+    order.is_ordered = True
+    order.save()
+
+    
     return render(request, 'orders/payments.html')

@@ -73,6 +73,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'api.category.context_processors.menu_links',
                 'api.carts.context_processors.counter',
+                'api.main.context_processors.paypal_context'
             ],
         },
     },
@@ -162,3 +163,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'testdndwebsite@gmail.com'
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = True
+
+
+PAYPAL_CLIENT_ID = 'AVPO9NZ6lEfqRxr-8g_1HP6y3HakVto6IjOcnuV8d3_2RgyEwl2KB7-VmPHa_8tvPvo8bUjdFdufo_lI'
+SECURE_CROSS_ORIGIN_OPENER_POLICY='same-origin-allow-popups' #Necessary to access the creation of a new PayPal payment window

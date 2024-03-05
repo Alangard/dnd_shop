@@ -1,10 +1,15 @@
-from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.contrib import messages
 from django.db.models import Q
 
-from ..store.models import Product, Variation
+
+from .models import Product, Variation, Feedback
+from .forms import FeedbackForm
 from ..category.models import Category
 from ..carts.models import CartItem
+from ..orders.models import OrderProduct
 
 from ..carts.views import _cart_id
 
@@ -52,14 +57,25 @@ def product_detail(request, category_slug, product_slug):
                 variation_dict[category_name] = []
             variation_dict[category_name].extend(value_list) 
 
-
     except Exception as e:
         raise e
     
+    try:
+        order_product = OrderProduct.objects.filter(user = request.user, product_id = product.id).exists()
+    except OrderProduct.DoesNotExist:
+        order_product = None
+
+
+    # Get the feedback
+    feedback = Feedback.objects.filter(product_id = product.id, status = True)
+
+
     context = {
         'product': product,
         'variation_dict': variation_dict,
         'in_cart': in_cart,
+        'order_product': order_product,
+        'reviews': feedback,
     }
 
     return render(request, 'store/product_detail.html', context)
@@ -79,3 +95,27 @@ def search(request):
         'product_count': product_count,
     }
     return render(request, 'store/store.html', context)
+
+            
+def submit_review(request, product_id):
+    url = request.META.get('HTTP_REFERER')
+    
+    if request.method == "POST":
+        form = FeedbackForm(request.POST)
+        try:
+            feedback = Feedback.objects.get(user__id=request.user.id, product__id=product_id)
+            form = FeedbackForm(request.POST, instance=feedback)
+            message_text = 'Thank you! Your review has been updated.'
+        except Feedback.DoesNotExist:
+            message_text = 'Thank you! Your review has been submitted.'
+            
+        if form.is_valid():
+            data = form.save(commit=False)
+            data.ip = request.META.get('REMOTE_ADDR')
+            data.product_id = product_id
+            data.user_id = request.user.id
+            data.save()
+            
+            messages.success(request, message_text)
+            return redirect(url)
+    

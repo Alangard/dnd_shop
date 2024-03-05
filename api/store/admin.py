@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import Product, Variation, VariationValue, VariationCategory
-
+from .models import Product, Variation, VariationValue, VariationCategory, Feedback
 # Register your models here.
 
 # class VariationInline(admin.TabularInline):
@@ -28,3 +27,4 @@ admin.site.register(Product, ProductAdmin)
 admin.site.register(Variation, VariationAdmin)
 admin.site.register(VariationValue)
 admin.site.register(VariationCategory)
+admin.site.register(Feedback)

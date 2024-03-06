@@ -29,6 +29,7 @@ class Product(models.Model):
         return self.product_name
 
 
+
 class VariationValue(models.Model):
     value = models.CharField(max_length=200)
 

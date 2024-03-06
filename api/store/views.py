@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Avg, Count
 
 
 from .models import Product, Variation, Feedback
@@ -60,14 +60,22 @@ def product_detail(request, category_slug, product_slug):
     except Exception as e:
         raise e
     
-    try:
-        order_product = OrderProduct.objects.filter(user = request.user, product_id = product.id).exists()
-    except OrderProduct.DoesNotExist:
+    if request.user.is_authenticated:
+        try:
+            order_product = OrderProduct.objects.filter(user = request.user, product_id = product.id).exists()
+        except OrderProduct.DoesNotExist:
+            order_product = None
+    else:
         order_product = None
 
 
-    # Get the feedback
+    # Get the feedback for product
     feedback = Feedback.objects.filter(product_id = product.id, status = True)
+
+    # Get average reviews rating and count of reviews for product.id
+    reviews = Feedback.objects.filter(product=product.id, status=True).aggregate(average = Avg('rating'), count = Count('id'))
+    average_rating = float(reviews['average']) if reviews['average'] is not None else 0
+    reviews_count = int(reviews['count']) if reviews['count'] is not None else 0
 
 
     context = {
@@ -76,6 +84,8 @@ def product_detail(request, category_slug, product_slug):
         'in_cart': in_cart,
         'order_product': order_product,
         'reviews': feedback,
+        'average_rating': average_rating,
+        'reviews_count': reviews_count
     }
 
     return render(request, 'store/product_detail.html', context)

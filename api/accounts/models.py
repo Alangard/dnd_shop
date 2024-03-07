@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 # Create your models here.
@@ -86,4 +87,10 @@ class UserProfile(models.Model):
     
     def full_address(self):
         return f'{self.country}, {self.state}, {self.city}, {self.address_line_1} { self.address_line_2}'
+    
+    def get_profile_picture_url(self):
+        if self.profile_picture:
+            return self.profile_picture.url
+        else:
+            return settings.STATIC_URL + 'images/avatars/avatar1.svg'
 

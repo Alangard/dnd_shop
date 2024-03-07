@@ -11,10 +11,20 @@
       <div class="row no-gutters">
         <aside class="col-md-6">
           <article class="gallery-wrap"> 
-            <div class="img-big-wrap mb-0">
-              <a href="#"><img class='w-100 h-100' src="{{ product.product_image.url }}"></a>
+            <div class="img-big-wrap mainImage mb-0">
+              <center><img src="{{ product.product_image.url }}"></center>
             </div> <!-- img-big-wrap.// -->
           </article> <!-- gallery-wrap .end// -->
+
+          <ul class="thumb">
+            <li>
+              <a href="{{product.product_image.url}}" target="mainImage"><img src="{{product.product_image.url}}" alt="Product Image"></a>
+              {% for i in product_gallery %}
+                <a href="{{i.image.url}}" target="mainImage"><img src="{{i.image.url}}" alt="Product Image"></a>
+              {% endfor %}
+            </li>
+          </ul>
+
         </aside>
       <main class="col-md-6 border-left">
 
@@ -155,4 +165,22 @@
     </section>
     <!-- ========================= SECTION CONTENT END// ========================= -->
 
+
+<script>
+  // Script for preview a product gallery
+  document.addEventListener("DOMContentLoaded", function() {
+    const thumbnailLinks = document.querySelectorAll('.thumb a');
+  
+    thumbnailLinks.forEach(function(thumbLink) {
+      thumbLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        const mainImage = document.querySelector('.mainImage img');
+        mainImage.setAttribute('src', thumbLink.getAttribute("href"));
+      });
+    });
+  });
+  </script>
+
 {% endblock  %}
+
+

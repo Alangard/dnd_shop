@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db.models import Q, Avg, Count
 
 
-from .models import Product, Variation, Feedback
+from .models import Product, Variation, Feedback, ProductGallery
 from .forms import FeedbackForm
 from ..category.models import Category
 from ..carts.models import CartItem
@@ -77,6 +77,10 @@ def product_detail(request, category_slug, product_slug):
     average_rating = float(reviews['average']) if reviews['average'] is not None else 0
     reviews_count = int(reviews['count']) if reviews['count'] is not None else 0
 
+    # Product Gallery
+    product_gallery = ProductGallery.objects.filter(product_id = product.id)
+
+
 
     context = {
         'product': product,
@@ -85,7 +89,8 @@ def product_detail(request, category_slug, product_slug):
         'order_product': order_product,
         'reviews': feedback,
         'average_rating': average_rating,
-        'reviews_count': reviews_count
+        'reviews_count': reviews_count,
+        'product_gallery': product_gallery,
     }
 
     return render(request, 'store/product_detail.html', context)

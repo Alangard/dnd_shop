@@ -29,6 +29,18 @@ class Product(models.Model):
         return self.product_name
 
 
+class ProductGallery(models.Model):
+    product = models.ForeignKey(Product, default = None, on_delete = models.CASCADE)
+    image = models.ImageField(upload_to='store/products', max_length=255)
+
+    class Meta:
+        db_table = "Product_gallery"
+        verbose_name = "Product_gallery"
+        verbose_name_plural = "Products gallery"
+
+    def __str__(self):
+        return self.product.product_name
+
 
 class VariationValue(models.Model):
     value = models.CharField(max_length=200)
@@ -69,8 +81,6 @@ class Variation(models.Model):
     def __str__(self):
         # return self.variation_value
         return f"{self.product.product_name}/v_c{self.variation_category}/v_vs{self.variation_value.values()}"
-
-    
 
 
 class Feedback(models.Model):

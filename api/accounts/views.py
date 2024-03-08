@@ -287,7 +287,7 @@ def order_detail(request, order_id):
     subtotal = sum(item.product_price * item.quantity for item in order_detail)
 
     context = {
-        'orders_detail': order_detail,
+        'order_detail': order_detail,
         'order': order,
         'subtotal': subtotal,
     }

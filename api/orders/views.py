@@ -9,7 +9,7 @@ import json
 
 from .models import Order, Payment, OrderProduct
 from ..carts.models import CartItem
-from ..store.models import Product
+from ..store.models import Product, ProductVariations, Variation
 
 from .forms import OrderForm
 
@@ -90,11 +90,32 @@ def payments(request):
             ordered=True
         )
 
-        product_variations = item.variations.all()
-        order_product.variations.set(product_variations)
+        cart_item_variations  = item.variations.all()
+        order_product.variations.set(cart_item_variations )
 
-        item.product.stock = F('stock') - item.quantity
-        item.product.save()
+        variations_list = []
+        product_variations = ProductVariations.objects.filter(product_id=item.product.id)
+        
+        for cart_item_variation in cart_item_variations:
+            variation_values = cart_item_variation.variation_value.all()
+            variation_values_ids = []
+            
+            for vv in variation_values:
+                variation_values_ids.append(vv.id)
+        
+            variations = Variation.objects.filter(variation_value_id__in=variation_values_ids)
+            variations_list.extend(variations)
+
+        # Looking for a ProductVariation that includes all variations at once
+        # Without this solution, it may return multiple values of one ProductVariation 
+        #(occurrence due to matching with the first category and occurrence due to matching with the second category, etc).
+        for variation in variations_list:
+            product_variations = product_variations.filter(variations=variation)
+        
+        if product_variations.exists():
+            product_variation = product_variations.first()
+            product_variation.stock -= item.quantity
+            product_variation.save()
 
     # Clear cart
     CartItem.objects.filter(user=request.user).delete()

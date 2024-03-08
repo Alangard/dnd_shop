@@ -1,11 +1,12 @@
-from django.http import HttpResponse
+import json
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.contrib import messages
 from django.db.models import Q, Avg, Count
 
 
-from .models import Product, Variation, Feedback, ProductGallery
+from .models import Product, ProductVariations, Variation, VariationCategory, VariationValue, Feedback, ProductGallery
 from .forms import FeedbackForm
 from ..category.models import Category
 from ..carts.models import CartItem
@@ -46,16 +47,15 @@ def product_detail(request, category_slug, product_slug):
         product = Product.objects.get(category__slug = category_slug, slug = product_slug)
         in_cart = CartItem.objects.filter(cart__cart_id = _cart_id(request), product = product).exists()
 
+        variations = ProductVariations.objects.filter(product=product)
         variation_dict = {}
-        variations = Variation.objects.filter(product=product)
 
         for variation in variations:
-            category_name = variation.variation_category.name
-            values = variation.variation_value.values() 
-            value_list = [v['value'] for v in values] 
-            if category_name not in variation_dict:
-                variation_dict[category_name] = []
-            variation_dict[category_name].extend(value_list) 
+            for var in variation.variations.all():
+                if var.variation_category.name not in variation_dict:
+                    variation_dict[var.variation_category.name] = [var.variation_value.value]
+                else:
+                    variation_dict[var.variation_category.name].append(var.variation_value.value)
 
     except Exception as e:
         raise e
@@ -80,8 +80,6 @@ def product_detail(request, category_slug, product_slug):
     # Product Gallery
     product_gallery = ProductGallery.objects.filter(product_id = product.id)
 
-
-
     context = {
         'product': product,
         'variation_dict': variation_dict,
@@ -95,6 +93,35 @@ def product_detail(request, category_slug, product_slug):
 
     return render(request, 'store/product_detail.html', context)
 
+
+def get_product_variations_stock(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        product_id = data.get('product_id', None)
+        variations_data = data.get('data', None)
+
+        if product_id and variations_data:
+            product_variations = ProductVariations.objects.filter(product_id=product_id)
+
+            variations = []
+            for key, value in variations_data.items():
+                variation_category = VariationCategory.objects.get(name=key)
+                variation_value = VariationValue.objects.get(value=value)
+                variation = Variation.objects.get(variation_category=variation_category, variation_value=variation_value)
+                variations.append(variation)
+
+            # Looking for a ProductVariation that includes all variations at once
+            # Without this solution, it may return multiple values of one ProductVariation 
+            #(occurrence due to matching with the first category and occurrence due to matching with the second category, etc).
+            for variation in variations:
+                product_variations = product_variations.filter(variations=variation)
+            
+            if product_variations.exists():
+                return JsonResponse({'data': product_variations.first().stock}, status=200)
+            else:
+                return JsonResponse({'data': None}, status=200)
+
+    return JsonResponse({'error': 'Invalid data'}, status=400)
 
 def search(request):
     products = None
@@ -133,4 +160,3 @@ def submit_review(request, product_id):
             
             messages.success(request, message_text)
             return redirect(url)
-    

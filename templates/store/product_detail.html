@@ -58,7 +58,7 @@
           <div class="row">
               <div class="item-option-select">
                 <h6>Choose {{ category }}</h6>
-                <select name="{{category}}" class="form-control" required>
+                <select name="{{category}}" class="form-control product_category" required>
                   <option value="" disabled selected>---</option>
                   {% for value in values %}
                     <option value="{{ value }}">{{ value | capfirst }}</option>
@@ -67,12 +67,12 @@
               </div>
           </div> 
         {% endfor %}
-        <hr>
-        {% if product.stock == 0 %}
-          <h5 class="text-danger"> Out of stock </h5>
-        {% else %}
-            <button type="submit" class="btn btn-primary"> <span class="text">Add to cart</span> <i class="fas fa-shopping-cart"></i></button>
-        {% endif %}
+      <hr> 
+       
+
+        <h5 class="text-danger" id="out_of_stock_text" style='display: none;'> Out of stock </h5>
+        <button type="submit" class="btn btn-primary" id="add_to_cart_btn"> <span class="text">Add to cart</span> <i class="fas fa-shopping-cart"></i></button>
+   
       </article> <!-- product-info-aside .// -->
     </form>
             </main> <!-- col.// -->
@@ -166,19 +166,79 @@
     <!-- ========================= SECTION CONTENT END// ========================= -->
 
 
-<script>
-  // Script for preview a product gallery
-  document.addEventListener("DOMContentLoaded", function() {
-    const thumbnailLinks = document.querySelectorAll('.thumb a');
+  <script>
+
+    function getCookie(name){
+      let cookieValue = null;
+      if(document.cookie && document.cookie !== ''){
+          const cookies = document.cookie.split(';')
+          for (let i = 0; i < cookies.length; i++){
+              const cookie = cookies[i].trim();
+              // Does this cookie string begin with the name we want?
+              if(cookie.substring(0, name.length + 1) === (name + '=')){
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+                  break
+              }
+          }
+      }
+      return cookieValue
+  }
+
   
-    thumbnailLinks.forEach(function(thumbLink) {
-      thumbLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        const mainImage = document.querySelector('.mainImage img');
-        mainImage.setAttribute('src', thumbLink.getAttribute("href"));
+    // Script for preview a product gallery
+    document.addEventListener("DOMContentLoaded", function() {
+      const thumbnailLinks = document.querySelectorAll('.thumb a');
+    
+      thumbnailLinks.forEach(function(thumbLink) {
+        thumbLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          const mainImage = document.querySelector('.mainImage img');
+          mainImage.setAttribute('src', thumbLink.getAttribute("href"));
+        });
       });
     });
-  });
+
+
+    // Waiting for all categories to be selected to get the stock value for the product variation
+    let product_id = "{{product.id}}"
+    const url = "{% url 'get_product_variations_stock' %}"
+    let csrftoken = getCookie('csrftoken')
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const selectElements = document.querySelectorAll('.product_category');  
+      const selected_variation = {};
+  
+      selectElements.forEach(selectElement => {selectElement.addEventListener('change', checkAllSelects);});  
+  
+      function checkAllSelects() {          
+          const allSelected = Array.from(selectElements).every(select => select.value !== '');
+          
+          if (allSelected) {
+              selectElements.forEach(select => {selected_variation[select.name] = select.options[select.selectedIndex].value;});
+
+              function sendData(){
+                fetch(url, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json","X-Csrftoken": csrftoken},
+                    body: JSON.stringify({product_id, data: selected_variation}),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+
+                  if (data.data === null || data.data?.stock === 0) {
+                    document.getElementById('out_of_stock_text').style.display = 'block'; 
+                    document.getElementById('add_to_cart_btn').style.display = 'none'; 
+                   } else {
+                    document.getElementById('out_of_stock_text').style.display = 'none';
+                    document.getElementById('add_to_cart_btn').style.display = 'inline-block';
+                }
+                })
+              }
+
+            sendData()
+          };
+      }
+    });
   </script>
 
 {% endblock  %}

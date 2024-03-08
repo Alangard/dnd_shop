@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.db import models
 
-from ..store.models import Product, Variation, VariationCategory, VariationValue
+from ..store.models import Product, VariationCategory, VariationValue
 from .models import Cart, CartItem, CartItemVariations
 
 

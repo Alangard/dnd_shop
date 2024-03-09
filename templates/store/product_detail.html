@@ -48,7 +48,7 @@
       
       
       <div class="mb-3"> 
-          <var class="price h4">${{ product.price }}</var> 
+          <var class="price h4" id="product_price">${{ product.price }}</var> 
       </div> 
       
       <p>{{ product.description }}</p>
@@ -201,7 +201,7 @@
 
     // Waiting for all categories to be selected to get the stock value for the product variation
     let product_id = "{{product.id}}"
-    const url = "{% url 'get_product_variations_stock' %}"
+    const url = "{% url 'get_product_variations_info' %}"
     let csrftoken = getCookie('csrftoken')
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -224,14 +224,17 @@
                 })
                 .then((response) => response.json())
                 .then((data) => {
-
-                  if (data.data === null || data.data?.stock === 0) {
+                  console.log(data.data?.stock === 0, data.data?.stock === null)
+                  if (data.data?.stock === null || data.data?.stock === 0) {
                     document.getElementById('out_of_stock_text').style.display = 'block'; 
                     document.getElementById('add_to_cart_btn').style.display = 'none'; 
                    } else {
                     document.getElementById('out_of_stock_text').style.display = 'none';
                     document.getElementById('add_to_cart_btn').style.display = 'inline-block';
-                }
+                  }
+
+                  if (data.data?.price){document.getElementById('product_price').innerText = "$" + data.data.price;}
+                  else{document.getElementById('product_price').innerText = "Price determination error";} 
                 })
               }
 

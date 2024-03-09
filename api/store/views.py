@@ -33,9 +33,23 @@ def store(request, category_slug = None):
 
     product_count = products.count()
 
+    # Get categories for the product filter list
+    variations = Variation.objects.select_related('variation_category', 'variation_value')
+    variation_dict = {}
+    for variation in variations:
+        category_name = variation.variation_category.name
+        value = variation.variation_value.value
+
+        if category_name not in variation_dict:
+            variation_dict[category_name] = []
+
+        variation_dict[category_name].append(value)
+
+
     context = { 
         'products': paged_products,
         'product_count': product_count,
+        'variation_dict': variation_dict,
     }
     
     return render(request, 'store/store.html', context)
@@ -94,11 +108,13 @@ def product_detail(request, category_slug, product_slug):
     return render(request, 'store/product_detail.html', context)
 
 
-def get_product_variations_stock(request):
+def get_product_variations_info(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         product_id = data.get('product_id', None)
         variations_data = data.get('data', None)
+
+        product = Product.objects.get(id = product_id)
 
         if product_id and variations_data:
             product_variations = ProductVariations.objects.filter(product_id=product_id)
@@ -117,9 +133,9 @@ def get_product_variations_stock(request):
                 product_variations = product_variations.filter(variations=variation)
             
             if product_variations.exists():
-                return JsonResponse({'data': product_variations.first().stock}, status=200)
+                return JsonResponse({'data': {'stock': product_variations.first().stock, 'price': product_variations.first().price}}, status=200)
             else:
-                return JsonResponse({'data': None}, status=200)
+                return JsonResponse({'data': {'stock': None, 'price': product.price}}, status=200)
 
     return JsonResponse({'error': 'Invalid data'}, status=400)
 

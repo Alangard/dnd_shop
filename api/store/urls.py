@@ -9,5 +9,5 @@ urlpatterns = [
     path('search/', views.search, name='search'),
     path('submit_review/<int:product_id>/', views.submit_review, name='submit_review'),
 
-    path('get_product_variations_stock/', views.get_product_variations_stock, name='get_product_variations_stock')
+    path('get_product_variations_info/', views.get_product_variations_info, name='get_product_variations_info')
 ]

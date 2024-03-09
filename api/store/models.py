@@ -46,7 +46,7 @@ class VariationValue(models.Model):
  
     class Meta: 
         db_table = "Variation_value" 
-        verbose_name = "Variation value" 
+        verbose_name = "Variation_value" 
         verbose_name_plural = "Variation values" 
  
     def __str__(self): 
@@ -57,7 +57,7 @@ class VariationCategory(models.Model):
  
     class Meta: 
         db_table = "Variation_category" 
-        verbose_name = "Variation category" 
+        verbose_name = "Variation_category" 
         verbose_name_plural = "Variation categories" 
  
     def __str__(self): 
@@ -78,13 +78,14 @@ class Variation(models.Model):
 class ProductVariations(models.Model): 
     product = models.ForeignKey(Product, on_delete = models.CASCADE) 
     variations = models.ManyToManyField(Variation, blank = True) 
-    stock = models.PositiveIntegerField(default = 0) 
+    stock = models.PositiveIntegerField(default = 0)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_active = models.BooleanField(default = True) 
     created_date = models.DateTimeField(auto_now = True) 
  
     class Meta: 
-        db_table = "ProductVariation" 
-        verbose_name = "ProductVariation" 
+        db_table = "Product_variation" 
+        verbose_name = "Product_variation" 
         verbose_name_plural = "Product variations" 
  
     def __str__(self): 

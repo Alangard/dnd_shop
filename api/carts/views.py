@@ -110,7 +110,7 @@ def cart(request, total = 0, quantity = 0, cart_items = None):
         else:
             cart = Cart.objects.get(cart_id = _cart_id(request))
             cart_items = CartItem.objects.filter(cart = cart, is_active = True).order_by('-quantity')
-
+        
         total = sum(cart_item.product.price * cart_item.quantity for cart_item in cart_items)
         tax = (2 * total) / 100 #2 is an example
         grand_total = total + tax

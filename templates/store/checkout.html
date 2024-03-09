@@ -92,9 +92,7 @@
                                                     <p class="text-muted small">
                                                         {% if cart_item.variations.all %}
                                                             {% for item in cart_item.variations.all %}
-                                                                {% for value in item.variation_value.all %}
-                                                                    {{ item.variation_category | capfirst }} : {{ value | capfirst }} <br>
-                                                                {% endfor %}
+                                                                {{ item.variation_category | capfirst }} : {{ item.variation_value | capfirst }} <br>
                                                             {% endfor %}
                                                         {% endif %}
                                                     </p>
@@ -107,7 +105,7 @@
                                         <td> 
                                             <div class="price-wrap"> 
                                                 <var class="price">${{ cart_item.sub_total }}</var> 
-                                                <small class="text-muted"> ${{ cart_item.product.price }} each </small> 
+                                                <small class="text-muted"> ${{ cart_item.price }} each </small> 
                                             </div>
                                         </td>
                                     </tr>

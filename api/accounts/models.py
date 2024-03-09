@@ -18,6 +18,7 @@ class MyAccountManager(BaseUserManager):
             username = username,
             first_name = first_name,
             last_name = last_name,
+
         )
 
         
@@ -35,6 +36,7 @@ class MyAccountManager(BaseUserManager):
             email = self.normalize_email(email),
             password = password,
         )
+        user.phone_number = 'test'
         user.is_admin = True
         user.is_staff = True
         user.is_active = True

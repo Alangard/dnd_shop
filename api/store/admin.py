@@ -3,6 +3,7 @@ from .models import Product, Variation, ProductVariations, VariationValue, Varia
 import admin_thumbnails
 
 
+
 # class VariationInline(admin.TabularInline):
 #     model = Variation
 #     extra = 1
@@ -36,8 +37,15 @@ class ProductAdmin(admin.ModelAdmin):
     def get_price(self, obj):
         return f'${obj.price}'
     get_price.short_description = 'Price'
-    # inlines = [VariationInline]
 
+
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ('get_user', 'ip', 'status', 'subject', 'rating', 'updated_at')
+    list_filter = ('status', 'rating', 'updated_at')
+
+    def get_user(self, obj):
+        return f'{obj.user.user.username}'
+    get_user.short_description = 'User'
 
 
 admin.site.register(Product, ProductAdmin)
@@ -46,4 +54,4 @@ admin.site.register(Variation)
 admin.site.register(ProductVariations, ProductVariationAdmin)
 admin.site.register(VariationValue)
 admin.site.register(VariationCategory)
-admin.site.register(Feedback)
+admin.site.register(Feedback, FeedbackAdmin)

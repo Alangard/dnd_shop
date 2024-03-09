@@ -3,8 +3,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.db import models
 
-from ..store.models import Product, VariationCategory, VariationValue
-from .models import Cart, CartItem, CartItemVariations
+from ..store.models import Product, VariationCategory, VariationValue, Variation, ProductVariations
+from .models import Cart, CartItem
 
 
 # Create your views here.
@@ -26,13 +26,8 @@ def add_cart(request, product_id):
             key = item
             value = request.POST[key]
             if key != 'csrfmiddlewaretoken':
-                try:
-                    variation = CartItemVariations.objects.get(variation_category__name__iexact=key, variation_value__value__iexact=value)
-                except:
-                    variation_category, created = VariationCategory.objects.get_or_create(name__iexact=key)
-                    variation_value, created = VariationValue.objects.get_or_create(value__iexact=value)
-                    variation = CartItemVariations.objects.create(variation_category=variation_category)
-                    variation.variation_value.add(variation_value)
+                
+                variation = Variation.objects.get(variation_category__name__iexact=key, variation_value__value__iexact=value)
                 product_variation.append(variation)
         
         try:
@@ -102,22 +97,30 @@ def remove__cart_item(request, product_id, cart_item__id):
 
 def cart(request, total = 0, quantity = 0, cart_items = None):
     tax = 0
-    grand_total = 0 
-    
+    grand_total = 0
+
     try:
         if request.user.is_authenticated:
-            cart_items = CartItem.objects.filter(user = request.user, is_active = True).order_by('-quantity')
+            cart_items = CartItem.objects.filter(user=request.user, is_active=True).order_by('-quantity')
         else:
-            cart = Cart.objects.get(cart_id = _cart_id(request))
-            cart_items = CartItem.objects.filter(cart = cart, is_active = True).order_by('-quantity')
-        
-        total = sum(cart_item.product.price * cart_item.quantity for cart_item in cart_items)
-        tax = (2 * total) / 100 #2 is an example
-        grand_total = total + tax
+            cart = Cart.objects.get(cart_id=_cart_id(request))
+            cart_items = CartItem.objects.filter(cart=cart, is_active=True).order_by('-quantity')
 
+        for cart_item in cart_items:
+            product_variation = ProductVariations.objects.filter(product=cart_item.product, is_active=True, variations=cart_item.variations.first()).first()
+            if product_variation:
+                cart_item.price = product_variation.price
+            else:
+                cart_item.price = cart_item.product.price
+
+            cart_item.sub_total = cart_item.price * cart_item.quantity
+            total += cart_item.price * cart_item.quantity
+
+        tax = (2 * total) / 100  # 2 is an example
+        grand_total = total + tax
     except ObjectDoesNotExist:
         pass
-
+    
     context = {
         'total': '{:.2f}'.format(total),
         'quantity': quantity,
@@ -141,8 +144,15 @@ def checkout(request, total = 0, quantity = 0, cart_items = None):
             cart_items = CartItem.objects.filter(cart = cart, is_active = True).order_by('-quantity')
             
         for cart_item in cart_items:
-            total += (cart_item.product.price * cart_item.quantity)
-            quantity += cart_item.quantity
+            product_variation = ProductVariations.objects.filter(product=cart_item.product, is_active=True, variations=cart_item.variations.first()).first()
+            if product_variation:
+                cart_item.price = product_variation.price
+            else:
+                cart_item.price = cart_item.product.price
+
+            cart_item.sub_total = cart_item.price * cart_item.quantity
+            total += cart_item.price * cart_item.quantity
+            
         tax = (2 * total) / 100 # example
         grand_total = total + tax
 

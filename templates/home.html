@@ -33,7 +33,7 @@
 				<a href="{{ product.get_url }}" class="title">{{product.product_name}}</a>
 				<div class="price mt-1">${{product.price}}</div> <!-- price-wrap.// -->
 
-				<div class="rating-star mb-3">
+				<div class="rating-star mb-3 mt-2">
 					<span>
 					  <i class="fa fa-star{% if product.average_rating < 0.5 %}-o {% elif product.average_rating >= 0.5 and product.average_rating < 1%}-half-o {% endif %}" aria-hidden="true"></i>
 					  <i class="fa fa-star{% if product.average_rating < 1.5 %}-o {% elif product.average_rating >= 1.5 and product.average_rating < 2%}-half-o {% endif %}" aria-hidden="true"></i>

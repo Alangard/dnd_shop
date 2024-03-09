@@ -45,6 +45,9 @@ def store(request, category_slug = None):
 
         variation_dict[category_name].append(value)
 
+    for product in paged_products:
+        average_rating = Feedback.objects.filter(product=product, status=True).aggregate(Avg('rating'))['rating__avg']
+        product.average_rating = average_rating if average_rating is not None else 0
 
     context = { 
         'products': paged_products,
@@ -157,22 +160,28 @@ def search(request):
             
 def submit_review(request, product_id):
     url = request.META.get('HTTP_REFERER')
+    form = FeedbackForm(request.POST)
+        
+    try:
+        feedback = Feedback.objects.get(user_id=request.user.id, product_id=product_id)
+        message_text = 'Thank you! Your review has been updated.'
+    except Feedback.DoesNotExist:
+        feedback = None
+        message_text = 'Thank you! Your review has been submitted.'
     
-    if request.method == "POST":
-        form = FeedbackForm(request.POST)
-        try:
-            feedback = Feedback.objects.get(user__id=request.user.id, product__id=product_id)
-            form = FeedbackForm(request.POST, instance=feedback)
-            message_text = 'Thank you! Your review has been updated.'
-        except Feedback.DoesNotExist:
-            message_text = 'Thank you! Your review has been submitted.'
-            
-        if form.is_valid():
+    if form.is_valid():
+        form_data = form.cleaned_data
+        if feedback:
+            for field, value in form_data.items():
+                if value != '':
+                    setattr(feedback, field, value)
+            feedback.save()
+        else:
             data = form.save(commit=False)
             data.ip = request.META.get('REMOTE_ADDR')
             data.product_id = product_id
             data.user_id = request.user.id
             data.save()
-            
-            messages.success(request, message_text)
-            return redirect(url)
+
+    messages.success(request, message_text)
+    return redirect(url)

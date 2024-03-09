@@ -24,8 +24,17 @@ def place_order(request, total = 0, quantity = 0):
 
     if cart_count <= 0:
             return redirect('store')
+    
+    for cart_item in cart_items:
+            product_variation = ProductVariations.objects.filter(product=cart_item.product, is_active=True, variations=cart_item.variations.first()).first()
+            if product_variation:
+                cart_item.price = product_variation.price
+            else:
+                cart_item.price = cart_item.product.price
+
+            cart_item.sub_total = cart_item.price * cart_item.quantity
+            total += cart_item.price * cart_item.quantity
         
-    total = sum(cart_item.product.price * cart_item.quantity for cart_item in cart_items)
     tax = (2 * total) / 100 #2 is an example
     grand_total = total + tax
     
@@ -80,42 +89,54 @@ def payments(request):
 
     # Move the cart items to OrderProduct
     for item in cart_items:
+
+        product_variation = ProductVariations.objects.filter(product=item.product, is_active=True, variations=item.variations.first()).first()
+        if product_variation:
+            item.price = product_variation.price
+        else:
+            item.price = item.product.price
+    
+        item.sub_total = item.price * item.quantity
+
         order_product = OrderProduct.objects.create(
             order=order,
             payment=payment,
             user=request.user,
             product=item.product,
             quantity=item.quantity,
-            product_price=item.product.price,
+            product_price=item.price,
             ordered=True
         )
 
         cart_item_variations  = item.variations.all()
-        order_product.variations.set(cart_item_variations )
+        order_product.variations.set(cart_item_variations)
 
-        variations_list = []
-        product_variations = ProductVariations.objects.filter(product_id=item.product.id)
+
+
+
+        # variations_list = []
+        # product_variations = ProductVariations.objects.filter(product_id=item.product.id)
         
-        for cart_item_variation in cart_item_variations:
-            variation_values = cart_item_variation.variation_value.all()
-            variation_values_ids = []
+        # for cart_item_variation in cart_item_variations:
+        #     variation_values = cart_item_variation.variation_value.all()
+        #     variation_values_ids = []
             
-            for vv in variation_values:
-                variation_values_ids.append(vv.id)
+        #     for vv in variation_values:
+        #         variation_values_ids.append(vv.id)
         
-            variations = Variation.objects.filter(variation_value_id__in=variation_values_ids)
-            variations_list.extend(variations)
+        #     variations = Variation.objects.filter(variation_value_id__in=variation_values_ids)
+        #     variations_list.extend(variations)
 
-        # Looking for a ProductVariation that includes all variations at once
-        # Without this solution, it may return multiple values of one ProductVariation 
-        #(occurrence due to matching with the first category and occurrence due to matching with the second category, etc).
-        for variation in variations_list:
-            product_variations = product_variations.filter(variations=variation)
+        # # Looking for a ProductVariation that includes all variations at once
+        # # Without this solution, it may return multiple values of one ProductVariation 
+        # #(occurrence due to matching with the first category and occurrence due to matching with the second category, etc).
+        # for variation in variations_list:
+        #     product_variations = product_variations.filter(variations=variation)
         
-        if product_variations.exists():
-            product_variation = product_variations.first()
-            product_variation.stock -= item.quantity
-            product_variation.save()
+        # if product_variations.exists():
+        #     product_variation = product_variations.first()
+        #     product_variation.stock -= item.quantity
+        #     product_variation.save()
 
     # Clear cart
     CartItem.objects.filter(user=request.user).delete()

@@ -44,9 +44,7 @@
                             <p class="text-muted small">
                                 {% if cart_item.variations.all %}
                                     {% for item in cart_item.variations.all %}
-                                        {% for value in item.variation_value.all %}
-                                            {{ item.variation_category | capfirst }} : {{ value | capfirst }} <br>
-                                        {% endfor %}
+                                            {{ item.variation_category | capfirst }} : {{ item.variation_value | capfirst }} <br>
                                     {% endfor %}
                                 {% endif %}
                             </p>
@@ -64,11 +62,9 @@
                                 <div class="input-group-append">
                                     <form action="{% url 'add_cart' cart_item.product.id %}" method="POST">
                                         {% csrf_token %}
-
+                                            
                                         {% for item in cart_item.variations.all %}
-                                            {% for value in item.variation_value.all %}
-                                                <input type="hidden" name="{{ item.variation_category | lower }}" value="{{ value | capfirst}}">
-                                            {% endfor %}
+                                            <input type="hidden" name="{{ item.variation_category | lower }}" value="{{ item.variation_value | capfirst}}">
                                         {% endfor %}
                         
                                         <button type="submit" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-plus"></i> </button>
@@ -80,7 +76,7 @@
                 <td> 
                     <div class="price-wrap"> 
                         <var class="price">${{ cart_item.sub_total }}</var> 
-                        <small class="text-muted"> ${{ cart_item.product.price }} each </small> 
+                        <small class="text-muted"> ${{ cart_item.price}} each </small> 
                     </div> <!-- price-wrap .// -->
                 </td>
                 <td class="text-right"> 

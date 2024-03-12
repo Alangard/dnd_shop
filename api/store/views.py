@@ -26,7 +26,10 @@ def store(request, category_slug = None):
         products = Product.objects.filter(category = categories, is_available = True)
     else:
         products = Product.objects.all().filter(is_available = True).order_by('id')
-        
+    
+
+    print(request.POST)
+
     paginator = Paginator(products, products_per_page)
     page = request.GET.get('page') # get page number parameter from url
     paged_products = paginator.get_page(page)
@@ -56,6 +59,8 @@ def store(request, category_slug = None):
     }
     
     return render(request, 'store/store.html', context)
+
+
 
 
 def product_detail(request, category_slug, product_slug):

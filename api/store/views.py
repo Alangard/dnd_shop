@@ -1,9 +1,10 @@
 import json
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.contrib import messages
 from django.db.models import Q, Avg, Count
+from django.urls import reverse
 
 
 from .models import Product, ProductVariations, Variation, VariationCategory, VariationValue, Feedback, ProductGallery
@@ -12,23 +13,60 @@ from ..category.models import Category
 from ..carts.models import CartItem
 from ..orders.models import OrderProduct
 
+
 from ..carts.views import _cart_id
 
 # Create your views here.
 
-def store(request, category_slug = None):
-    categories = None
-    products = None
-    products_per_page = 15
+def get_filter_url(request, filters={}):
+    url = request.path
+    query_params = request.GET.copy()
+    query_params.update(filters)
+    return f"{url}?{query_params.urlencode()}"
 
-    if category_slug != None:
-        categories = get_object_or_404(Category, slug = category_slug)
-        products = Product.objects.filter(category = categories, is_available = True)
-    else:
-        products = Product.objects.all().filter(is_available = True).order_by('id')
+def store(request, category_slug = None):
+    category = None
+    products = None
+    products_per_page = 1
+    # products_per_page = 15
+
+    filter_params = {}
+
+
+    products = Product.objects.all().filter(is_available = True).order_by('id')
     
 
-    print(request.POST)
+    if request.method == 'POST':
+        product_variations = ProductVariations.objects.all()
+
+        for key, values in request.POST.items():
+
+            if values != '-1':
+                if key == 'category':
+                    category = get_object_or_404(Category, slug = values)
+                    products = products.filter(category = category, is_available = True)
+                    filter_params[key] = category.slug
+                elif key == 'min_price':
+                    products = products.filter(price__gte = values)
+                    filter_params[key] = values
+                elif key == 'max_price':
+                    products = products.filter(price__lte = values)
+                    filter_params[key] = values
+                elif 'variations_' in key:
+                    variation_category = '_'.join(key.split('_')[1:])
+                    variation_values = request.POST.getlist(key)
+
+                    if len(variation_values) == 1:
+                        product_variations = product_variations.filter(variations__variation_category__name=variation_category, variations__variation_value__value=variation_values[0])
+                    elif len(variation_values) > 1:
+                        product_variations = product_variations.filter(variations__variation_category__name=variation_category, variations__variation_value__value__in=variation_values)
+
+                    print(f'products_test: {products}')
+                    variation_ids = [pv.id for pv in product_variations]
+                    products = products.filter(productvariations__in=variation_ids).distinct()
+
+                    filter_params[key.lower()] = ','.join(variation_values)
+            # print(f'Filtered products: {[product.variations.all() for product in product_variations]}')
 
     paginator = Paginator(products, products_per_page)
     page = request.GET.get('page') # get page number parameter from url
@@ -51,16 +89,17 @@ def store(request, category_slug = None):
     for product in paged_products:
         average_rating = Feedback.objects.filter(product=product, status=True).aggregate(Avg('rating'))['rating__avg']
         product.average_rating = average_rating if average_rating is not None else 0
+    
+    filter_url = get_filter_url(request, filter_params)
 
     context = { 
         'products': paged_products,
         'product_count': product_count,
         'variation_dict': variation_dict,
+        'filter_url': filter_url,
     }
     
     return render(request, 'store/store.html', context)
-
-
 
 
 def product_detail(request, category_slug, product_slug):

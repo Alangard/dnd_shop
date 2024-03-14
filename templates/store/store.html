@@ -20,186 +20,204 @@
 <!-- ========================= SECTION CONTENT ========================= -->
 <section class="section-content padding-y">
     <div class="container">
-    
-    <div class="row">
-        <aside class="col-md-3">
-            
-            <div class="card">
-                <form method="POST" action="{% url 'store' %}">  
-                    {% csrf_token %}   
-                    <article class="filter-group">
-                        <header class="card-header">
-                            <a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="true" class="">
-                                <i class="icon-control fa fa-chevron-down"></i>
-                                <h6 class="title">Categories</h6>
-                            </a>
-                        </header>
-                        <div class="filter-content collapse show" id="collapse_1" style="">
-                            <div class="card-body">
-                                
-                                <ul class="list-menu">
-                                    <li><a href="{% url 'store' %}">All products</a></li>
-                                    {% for category in links %}
-                                        <li><a href="{{ category.get_url }}">{{ category.category_name }}</a></li>
-                                    {% endfor %}
-                                </ul>
-                
-                            </div> 
-                        </div>
-                    </article> 
-                
-                    {% for variation_category, variation_values in variation_dict.items %}  
-                        <article class="filter-group">  
+        <div class="row">
+            <aside class="col-md-3">
+                <div class="card">
+                    <form method="POST" action="{% url 'store' %}">  
+                        {% csrf_token %}   
+                        <article class="category filter-group">  
                             <header class="card-header">  
-                                <a class="" data-bs-toggle="collapse" href="#{{variation_category}}Filter" role="button" aria-expanded="false" aria-controls="{{variation_category}}Filter">
+                                <a class="" data-bs-toggle="collapse" href="#category" role="button" aria-expanded="false" aria-controls="category">
                                     <i class="icon-control fa fa-chevron-down"></i>  
-                                    <h6 class="title">{{variation_category}} </h6>  
+                                    <h6 class="title">Categories </h6>  
                                 </a>  
                             </header>  
-                            <div class="filter-content collapse show" id="{{ variation_category }}Filter">  
-                                <div class="card-body pt-0">  
-                                    {% for variation_value in variation_values %}  
-                                        <div class="checkbox-btn btn px-0">
-                                            <input type="checkbox" class="btn-check" id="{{ variation_category }}_{{ variation_value }}" name="{{ variation_category }}" value="{{ variation_value }}" autocomplete="off">
-                                            <label class="btn btn-light" for="{{ variation_category }}_{{ variation_value }}">{{ variation_value }}</label><br>
-                                        </div>
-                                    {% endfor %}  
-                                </div>  
+                            <div class="filter-content collapse show" id="category">
+                                <div class="card-body pt-0">     
+                                    <ul class="list-menu">
+                                        <li>
+                                            <div class="checkbox-btn btn px-0 py-0">
+                                                <input type="radio" name="category" id="category__all_products" value="-1" checked>
+                                                <label class="btn btn-light" for="category__all_products">All products</label>
+                                            </div>
+                                        </li>
+                                        {% for category in categories %}
+                                            <li> 
+                                                <div class="checkbox-btn btn px-0 py-0">
+                                                    <input type="radio" name="category" id="category__{{category.category_name}}" value="{{ category.slug }}">
+                                                    <label class="btn btn-light" for="category__{{category.category_name}}">{{ category.category_name }}</label>
+                                                </div>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
                             </div>  
                         </article>  
-                    {%endfor%}   
-                      
+                    
+                        {% for variation_category, variation_values in variation_dict.items %}  
+                            <article class="variations filter-group">  
+                                <header class="card-header">  
+                                    <a class="" data-bs-toggle="collapse" href="#{{variation_category}}Filter" role="button" aria-expanded="false" aria-controls="{{variation_category}}Filter">
+                                        <i class="icon-control fa fa-chevron-down"></i>  
+                                        <h6 class="title">{{variation_category}} </h6>  
+                                    </a>  
+                                </header>  
+                                <div class="filter-content collapse show" id="{{ variation_category }}Filter">  
+                                    <div class="card-body pt-0">                                                                  
+                                        {% for variation_value in variation_values %}  
+                                            <div class="checkbox-btn btn px-0">
+                                                <input type="checkbox" class="btn-check" id="{{ variation_category }}_{{ variation_value }}" name="variations_{{ variation_category }}" value="{{ variation_value }}" autocomplete="off">
+                                                <label class="btn btn-light" for="{{ variation_category }}_{{ variation_value }}">{{ variation_value }}</label><br>
+                                            </div>
+                                        {%endfor%}                                                     
+                                    </div>  
+                                </div>  
+                            </article>  
+                        {%endfor%}
+                        
+                    
+                        
+                        <article class="price_range filter-group">
+                            <header class="card-header">
+                                <a href="#" data-toggle="collapse" data-target="#collapse_3" aria-expanded="true" class="">
+                                    <i class="icon-control fa fa-chevron-down"></i>
+                                    <h6 class="title">Price range </h6>
+                                </a>
+                            </header>
+                            <div class="filter-content collapse show" id="collapse_3" style="">
+                                <div class="card-body">                               
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6">
+                                            <label>Min</label>
+                                                <select class="mr-2 form-control" name="min_price" id="min_price">
+                                                    <option value="-1">---</option>
+                                                    <option value="50">$50</option>
+                                                    <option value="100">$100</option>
+                                                    <option value="150">$150</option>
+                                                    <option value="200">$200</option>
+                                                    <option value="500">$500</option>
+                                                    <option value="1000">$1000</option>
+                                                </select>
+                                        </div>
+                                        <div class="form-group text-right col-md-6">
+                                            <label>Max</label>
+                                                <select class="mr-2 form-control" name="max_price" id="max_price">
+                                                    <option value="-1">---</option>
+                                                    <option value="50">$50</option>
+                                                    <option value="100">$100</option>
+                                                    <option value="150">$150</option>
+                                                    <option value="200">$200</option>
+                                                    <option value="500">$500</option>
+                                                    <option value="1000">$1000</option>
+                                                    <option value="2000">$2000+</option>
+                                                </select>
+                                        </div>
+                                    </div> 
+                                </div><!-- card-body.// -->
+                            </div>
+                        </article>
 
-                    <article class="filter-group">
-                        <header class="card-header">
-                            <a href="#" data-toggle="collapse" data-target="#collapse_3" aria-expanded="true" class="">
-                                <i class="icon-control fa fa-chevron-down"></i>
-                                <h6 class="title">Price range </h6>
-                            </a>
-                        </header>
-                        <div class="filter-content collapse show" id="collapse_3" style="">
-                            <div class="card-body">                               
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label>Min</label>
-                                            <select class="mr-2 form-control" name="min_price" id="min_price">
-                                                <option value="0">$0</option>
-                                                <option value="50">$50</option>
-                                                <option value="100">$100</option>
-                                                <option value="150">$150</option>
-                                                <option value="200">$200</option>
-                                                <option value="500">$500</option>
-                                                <option value="1000">$1000</option>
-                                            </select>
-                                    </div>
-                                    <div class="form-group text-right col-md-6">
-                                        <label>Max</label>
-                                            <select class="mr-2 form-control" name="max_price" id="max_price">
-                                                <option value="50">$50</option>
-                                                <option value="100">$100</option>
-                                                <option value="150">$150</option>
-                                                <option value="200">$200</option>
-                                                <option value="500">$500</option>
-                                                <option value="1000">$1000</option>
-                                                <option value="2000">$2000+</option>
-                                            </select>
-                                    </div>
-                                </div> 
-                            </div><!-- card-body.// -->
+                        <button class="btn btn-block btn-primary">Apply</button>
+                    </form>
+                </div>
+            </aside>
+            
+            <main class="col-md-9">
+                <header class="border-bottom mb-4 pb-3">
+                        <div class="form-inline">
+                            <span class="mr-md-auto"><b>{{product_count}}</b> Items found </span>
+                            
                         </div>
-                    </article> <!-- filter-group .// -->
-
-                    <button class="btn btn-block btn-primary">Apply</button>
-                </form>
-            </div> <!-- card.// -->
-    
-        </aside> <!-- col.// -->
-        <main class="col-md-9">
-    
-    <header class="border-bottom mb-4 pb-3">
-            <div class="form-inline">
-                <span class="mr-md-auto"><b>{{product_count}}</b> Items found </span>
+                </header>
                 
-            </div>
-    </header><!-- sect-heading -->
-    
-    <div class="row h-a"> 
-        {% if products %}
-            {% for product in products %}
-            <div class="col-md-4">
-                <figure class="card card-product-grid">
-                    <div class="img-wrap">   
-                        <a href="{{ product.get_url }}"><img src="{{product.product_image.url}}"></a>  
-                    </div> <!-- img-wrap.// -->
-                    <div class="info-wrap ">
-                        <div>
-                            <a href="{{ product.get_url }}" class="title">{{product.product_name}}</a>
-                            <div class="price-wrap mt-2">
-                                <span class="price">${{product.price}}</span>
+                <div class="row h-a"> 
+                    {% if products %}
+                        {% for product in products %}
+                        <div class="col-md-4">
+                            <figure class="card card-product-grid">
+                                <div class="img-wrap">   
+                                    <a href="{{ product.get_url }}"><img src="{{product.product_image.url}}"></a>  
+                                </div> <!-- img-wrap.// -->
+                                <div class="info-wrap ">
+                                    <div>
+                                        <a href="{{ product.get_url }}" class="title">{{product.product_name}}</a>
+                                        <div class="price-wrap mt-2">
+                                            <span class="price">${{product.price}}</span>
 
-                                <div class="rating-star mb-3 mt-2">
-                                    <span>
-                                      <i class="fa fa-star{% if product.average_rating < 0.5 %}-o {% elif product.average_rating >= 0.5 and product.average_rating < 1%}-half-o {% endif %}" aria-hidden="true"></i>
-                                      <i class="fa fa-star{% if product.average_rating < 1.5 %}-o {% elif product.average_rating >= 1.5 and product.average_rating < 2%}-half-o {% endif %}" aria-hidden="true"></i>
-                                      <i class="fa fa-star{% if product.average_rating < 2.5 %}-o {% elif product.average_rating >= 2.5 and product.average_rating < 3%}-half-o {% endif %}" aria-hidden="true"></i>
-                                      <i class="fa fa-star{% if product.average_rating < 3.5 %}-o {% elif product.average_rating >= 3.5 and product.average_rating < 4%}-half-o {% endif %}" aria-hidden="true"></i>
-                                      <i class="fa fa-star{% if product.average_rating < 4.5 %}-o {% elif product.average_rating >= 4.5 and product.average_rating < 5%}-half-o {% endif %}" aria-hidden="true"></i>
-                                    </span>
+                                            <div class="rating-star mb-3 mt-2">
+                                                <span>
+                                                <i class="fa fa-star{% if product.average_rating < 0.5 %}-o {% elif product.average_rating >= 0.5 and product.average_rating < 1%}-half-o {% endif %}" aria-hidden="true"></i>
+                                                <i class="fa fa-star{% if product.average_rating < 1.5 %}-o {% elif product.average_rating >= 1.5 and product.average_rating < 2%}-half-o {% endif %}" aria-hidden="true"></i>
+                                                <i class="fa fa-star{% if product.average_rating < 2.5 %}-o {% elif product.average_rating >= 2.5 and product.average_rating < 3%}-half-o {% endif %}" aria-hidden="true"></i>
+                                                <i class="fa fa-star{% if product.average_rating < 3.5 %}-o {% elif product.average_rating >= 3.5 and product.average_rating < 4%}-half-o {% endif %}" aria-hidden="true"></i>
+                                                <i class="fa fa-star{% if product.average_rating < 4.5 %}-o {% elif product.average_rating >= 4.5 and product.average_rating < 5%}-half-o {% endif %}" aria-hidden="true"></i>
+                                                </span>
+                                            </div>
+
+                                        </div> <!-- price-wrap.// -->
+                                    </div>
+                                    <a href="{{ product.get_url }}" class="btn btn-block btn-primary mt-2">View details </a>     
                                 </div>
 
-                            </div> <!-- price-wrap.// -->
-                        </div>
-                        <a href="{{ product.get_url }}" class="btn btn-block btn-primary mt-2">View details </a>     
-                    </div>
+                            </figure>
 
-                </figure>
-
-            </div> <!-- col.// -->
-            {% endfor %}
-        {% else %}
-            <div>
-                <h2>No result found. Please try again.</h2>
-            </div>
-        {% endif %}
-    </div> <!-- row end.// -->
-    
-    
-    <nav class="mt-4" aria-label="Page navigation sample">
-        {% if products.has_other_pages %}
-            <ul class="pagination">
-                {% if products.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a></li>
-                {% else %}
-                    <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                {% endif %}
-
-                {% for page_number in products.paginator.page_range %}
-                    {% if products.number == page_number %}
-                        <li class="page-item active"><a class="page-link" href="#">{{ page_number}}</a></li>
+                        </div> <!-- col.// -->
+                        {% endfor %}
                     {% else %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_number }}">{{ page_number}}</a></li>
+                        <div>
+                            <h2>No result found. Please try again.</h2>
+                        </div>
                     {% endif %}
-                {% endfor %}
+                </div>
+                
+                <nav class="mt-4" aria-label="Page navigation sample">
+                    
 
-                {% if products.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{products.next_page_number}}">Next</a></li>
-                {% else %}
-                    <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
-                {% endif %}
-            </ul>
-        {% endif %}
-    </nav>
-    
-        </main> <!-- col.// -->
-    
+                        {% if products.has_other_pages %}
+                            <ul class="pagination">
+                                {% if products.has_previous %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a></li>
+                                {% else %}
+                                    <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                {% endif %}
+
+                                {% for page_number in products.paginator.page_range %}
+                                    {% if products.number == page_number %}
+                                        <li class="page-item active"><a class="page-link" href="#">{{ page_number}}</a></li>
+                                    {% else %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ page_number }}">{{ page_number}}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if products.has_next %}
+                                    <li class="page-item"><a class="page-link" href="?page={{products.next_page_number}}">Next</a></li>
+                                {% else %}
+                                    <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+                                {% endif %}
+                            </ul>
+                        {% endif %}
+      
+                </nav>
+            </main>
+        </div>
     </div>
+</section>
+<!-- ========================= SECTION CONTENT END// ========================= -->
+
+<script>
+    document.querySelector('form').addEventListener('submit', function(event) { 
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]'); 
+        var checked = false; 
     
-    </div> <!-- container .//  -->
-    </section>
-    <!-- ========================= SECTION CONTENT END// ========================= -->
+        checkboxes.forEach(function(checkbox) { 
+            if (checkbox.checked) { 
+                checked = true; 
+            } 
+        }); 
+    }); 
+</script>
 
 {% endblock  %}
 
-<script>
-</script>
+
 

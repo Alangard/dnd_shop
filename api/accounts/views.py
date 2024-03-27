@@ -48,14 +48,16 @@ def register(request):
             to_email = form.cleaned_data['email']
             send_email = EmailMessage(mail_subject, message, to=[to_email,])
             send_email.send()
-            return redirect('/accounts/login/?command=verification&email=' + form.cleaned_data['email'])           
+            return redirect(f'/accounts/login/?command=verification&email={form.cleaned_data['email']}/')
+        else:
+            return HttpResponse(status=201)
     else:
         form = RegistrationForm
 
-    context = {
-        'form': form,
-    }
-    return render(request, 'accounts/register.html', context)
+        context = {
+            'form': form,
+        }
+        return render(request, 'accounts/register.html', context)
 
 
 def login(request):

@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
@@ -18,33 +19,41 @@ class MyAccountManager(BaseUserManager):
             username = username,
             first_name = first_name,
             last_name = last_name,
-
-        )
+        ) 
 
         
         user.set_password(password)
         user.save(using=self._db)
         user_profile = UserProfile(user = user)
-        user_profile.save()
+        user_profile.save(using=self._db)
         return user
     
-    def create_superuser(self, first_name, last_name, username, email, password=None):
+
+    def create_superuser(self, first_name, last_name, username, email, password=None, phone_number=None):
+
         user = self.create_user(
-            first_name = first_name, 
-            last_name = last_name, 
-            username = username, 
-            email = self.normalize_email(email),
-            password = password,
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            email=self.normalize_email(email),
+            password=password,
         )
-        user.phone_number = 'test'
+
+        if phone_number is None:
+            user.phone_number = f'admin_test_phone_{str(uuid.uuid4())[:8]}'
+        else:
+            user.phone_number = phone_number
+        
         user.is_admin = True
         user.is_staff = True
         user.is_active = True
         user.is_superadmin = True
-        user.save(using = self._db)
-        user_profile = UserProfile(user = user)
-        user_profile.save()
+        user.save(using=self._db)
+        
         return user
+    
+
+
 
 class Account(AbstractBaseUser):
     first_name = models.CharField(max_length = 50)

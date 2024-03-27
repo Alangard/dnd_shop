@@ -32,5 +32,4 @@ class ProductFilter(django_filters.FilterSet):
                 queryset = queryset.filter(productvariations__in=variation_ids).distinct()
             # print(f'Filtered products: {[product.variations.all() for product in product_variations]}')
 
-
         return queryset

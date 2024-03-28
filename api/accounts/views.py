@@ -118,7 +118,6 @@ def login(request):
     return render(request, 'accounts/login.html')
 
 
-@login_required(login_url = 'login')
 def logout(request):
     auth.logout(request)
     messages.success(request, 'You are logged out.')
@@ -171,6 +170,7 @@ def forgotPassword(request):
 
 
 def resetPasswordValidate(request, uidb64, token):
+
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
         user = Account._default_manager.get(pk=uid)

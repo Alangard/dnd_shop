@@ -204,7 +204,10 @@ def resetPassword(request):
         
     return render(request, 'accounts/resetPassword.html')
 
+
 # Dashboard section 
+
+
 @login_required(login_url = 'login')
 def dashboard(request):
     orders =  Order.objects.order_by("-created_at").filter(user_id = request.user.id, is_ordered = True)
@@ -250,6 +253,7 @@ def edit_profile(request):
         'profile_form': profile_form,
         'user_profile': user_profile,
     }
+
     return render(request, 'accounts/edit_profile.html', context)
 
 

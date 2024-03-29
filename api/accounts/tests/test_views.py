@@ -7,12 +7,10 @@ from django.utils.encoding import force_bytes
 from django.utils.translation import activate
 from django.contrib.auth.tokens import default_token_generator
 
-from ..models import Account
+from ..models import Account,UserProfile
+from ..forms import UserForm, UserProfileForm
 
-from ...store.models import Product, Variation, ProductVariations, VariationCategory, VariationValue
-from ...category.models import Category
-from ...carts.models import Cart, CartItem
-from ...carts.views import _cart_id
+from ...orders.models import Payment, Order
 
 
 
@@ -82,12 +80,12 @@ class LoginTestCase(TestCase):
         # self.assertRedirects(response, reverse('checkout'))
 
         # Check success login
-        response = self.client.post(login_url, {'email': 'johndoe@example.com', 'password': 'testpass123'})
+        response = client.post(login_url, {'email': 'johndoe@example.com', 'password': 'testpass123'})
         self.assertEqual(response.status_code, 302)  # Check status code
         self.assertRedirects(response, reverse('dashboard'))  # Check if the response redirects to the correct URL
 
         # Check failed login
-        response = self.client.post(login_url, {'email': 'johndoe@example.com', 'password': 'wrongpass'})
+        response = client.post(login_url, {'email': 'johndoe@example.com', 'password': 'wrongpass'})
         self.assertEqual(response.status_code, 302)  # Проверяем код ответа на редирект
         self.assertRedirects(response, reverse('login'))  # Check if the response redirects to the correct URL
 
@@ -189,6 +187,7 @@ class AccountActivationTestCase(TestCase):
             'password': 'testpass123',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
+        self.client = Client()
 
     def test_activate_account(self):
         uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
@@ -219,6 +218,8 @@ class ForgotPasswordTestCase(TestCase):
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True
         self.user.save()
+
+        self.client = Client()
 
     def test_forgotPassword_view(self):
         response = self.client.post(reverse('forgotPassword'), {'email': self.user_data['email']})
@@ -254,6 +255,8 @@ class ResetPasswordValidateTestCase(TestCase):
         self.uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
         self.token = default_token_generator.make_token(self.user)
 
+        self.client = Client()
+
     def test_resetPasswordValidate_valid_token(self):
         response = self.client.get(reverse('reset_password__validate', args=[self.uidb64, self.token]))
 
@@ -283,6 +286,8 @@ class ResetPasswordTestCase(TestCase):
         self.user.is_active = True
         self.user.save()
 
+        self.client = Client()
+
         self.client.login(email='johndoe@example.com', password='testpass123')
 
     def test_resetPassword_matching_passwords(self):
@@ -304,3 +309,172 @@ class ResetPasswordTestCase(TestCase):
         self.assertFalse(self.user.check_password('new_password1'))
         self.assertEqual(response.status_code, 302) 
         self.assertRedirects(response, reverse('resetPassword'))
+
+
+class DashboardTestCase(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model() 
+        self.user_data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'username': 'johndoe',
+            'email': 'johndoe@example.com',
+            'password': 'testpass123',
+        }
+        self.user =  self.user_model.objects.create_user(**self.user_data)
+        self.user.is_active = True
+        self.user.save()
+
+        self.client = Client()
+
+        self.payment = Payment.objects.create(
+            user=self.user,
+            payment_id='test',
+            payment_method='PayPal',
+            amount_paid=377.40,
+            status='COMPLETED'
+        )
+
+        self.order = Order.objects.create(
+            user = self.user,
+            payment = self.payment,
+            order_number = '1234',
+            first_name = self.user_data['first_name'],
+            last_name = self.user_data['last_name'],
+            phone_number = '+test_number',
+            email = self.user_data['email'],
+            address_line_1 = 'test_address_line1',
+            country = 'USA',
+            state = 'Colorado',
+            city = 'Denver',
+            order_total = 377.40,
+            tax = 7.40,
+            status = 'New',
+            ip = '0.0.0.0',
+            is_ordered = True,
+        )
+
+
+    def test_dashboard_view(self):
+        orders = Order.objects.order_by("-created_at").filter(user_id = self.user.id, is_ordered = True)
+        orders_count = orders.count()
+
+        user_profile = UserProfile.objects.filter(user_id = self.user.id).exists()
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertIsNotNone(response.context.get('orders_count'))
+        self.assertIsNotNone(response.context.get('user_profile'))
+
+        self.assertEqual(orders_count, response.context['orders_count'])
+        self.assertTrue(user_profile, response.context['user_profile'])
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/dashboard.html')
+
+
+class MyOrdersTestCase(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model() 
+        self.user_data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'username': 'johndoe',
+            'email': 'johndoe@example.com',
+            'password': 'testpass123',
+        }
+        self.user =  self.user_model.objects.create_user(**self.user_data)
+        self.user.is_active = True
+        self.user.save()
+
+        self.payment1 = Payment.objects.create(
+            user=self.user,payment_id='test', payment_method='PayPal',amount_paid=377.40,status='COMPLETED'
+        )
+        self.payment2 = Payment.objects.create(
+            user=self.user,payment_id='test', payment_method='PayPal',amount_paid=377.40,status='COMPLETED'
+        )
+
+        self.order1 = Order.objects.create(
+            user = self.user, payment = self.payment1, order_number = '1234',
+            first_name = self.user_data['first_name'], last_name = self.user_data['last_name'],
+            phone_number = '+test_number', email = self.user_data['email'],
+            address_line_1 = 'test_address_line1', country = 'USA', state = 'Colorado', city = 'Denver',
+            order_total = 377.40, tax = 7.40, status = 'New', ip = '0.0.0.0', is_ordered = True,
+        )
+
+        self.order2 = Order.objects.create(
+            user = self.user, payment = self.payment2, order_number = '1235',
+            first_name = self.user_data['first_name'], last_name = self.user_data['last_name'],
+            phone_number = '+test_number', email = self.user_data['email'],
+            address_line_1 = 'test_address_line1', country = 'USA', state = 'Colorado', city = 'Denver',
+            order_total = 350.40, tax = 5.40, status = 'New', ip = '0.0.0.0', is_ordered = True,
+        )
+
+        self.client = Client()
+
+    def test_my_orders_view(self):
+        orders = Order.objects.filter(user_id = self.user.id, is_ordered = True).order_by("-created_at")
+        self.client.force_login(self.user)
+        
+        response = self.client.get(reverse('my_orders'))
+
+        self.assertIsNotNone(response.context.get('orders'))
+        self.assertEqual(set(orders), set(response.context['orders']))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/my_orders.html')
+
+
+class EditProfileTestCase(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model() 
+        self.user_data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'username': 'johndoe',
+            'email': 'johndoe@example.com',
+            'password': 'testpass123',
+        }
+        self.user =  self.user_model.objects.create_user(**self.user_data)
+        self.user.is_active = True
+        self.user.save()
+
+        self.client = Client()
+
+    def test_edit_profile_view_get(self):
+        user_profile = UserProfile.objects.get(user = self.user)
+        self.client.force_login(self.user)
+        
+        response = self.client.get(reverse('edit_profile'))
+
+        self.assertIsNotNone(response.context.get('user_form'))
+        self.assertIsNotNone(response.context.get('profile_form'))
+        self.assertIsNotNone(response.context.get('user_profile'))
+
+        for field_name in UserForm(instance = self.user).fields:
+            self.assertEqual(UserForm(instance = self.user)[field_name].value(), response.context['user_form'][field_name].value())
+        
+        for field_name in UserProfileForm(instance = user_profile).fields:
+            self.assertEqual(UserProfileForm(instance = user_profile)[field_name].value(),response.context['profile_form'][field_name].value())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/edit_profile.html')
+
+    def test_edit_profile_form_submission(self):
+
+        self.client.force_login(self.user)
+        
+        #Emulate form send
+        response = self.client.post(reverse('edit_profile'), {'first_name': 'J', 'last_name': 'D', 'phone_number':'test_number', 'city': 'New York'})
+        
+        user = self.user_model.objects.get(id=self.user.id)
+        user_profile = UserProfile.objects.get(user=self.user)
+
+        for key, value in {'first_name': 'J', 'last_name': 'D', 'phone_number':'test_number'}.items():
+            self.assertEqual(getattr(user, key), value)
+
+        self.assertEqual(user_profile.city, 'New York')
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('edit_profile'))  # Check if the response redirects to the correct URL  

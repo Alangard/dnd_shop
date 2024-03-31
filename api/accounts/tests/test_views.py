@@ -10,7 +10,9 @@ from django.contrib.auth.tokens import default_token_generator
 from ..models import Account,UserProfile
 from ..forms import UserForm, UserProfileForm
 
-from ...orders.models import Payment, Order
+from ...orders.models import Payment, Order, OrderProduct
+from ...store.models import Product, Variation, VariationCategory, VariationValue
+from ...category.models import Category
 
 
 
@@ -478,3 +480,127 @@ class EditProfileTestCase(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('edit_profile'))  # Check if the response redirects to the correct URL  
+
+
+class ChangePasswordTestCase(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model() 
+        self.user_data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'username': 'johndoe',
+            'email': 'johndoe@example.com',
+            'password': 'testpass123',
+        }
+        self.user =  self.user_model.objects.create_user(**self.user_data)
+        self.user.is_active = True
+        self.user.save()
+
+        self.client = Client()
+
+    def change_password_view_get(self):
+        self.client.force_login(self.user)
+        
+        response = self.client.get(reverse('change_password'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/change_password.html')
+
+    def change_password_view_post_matching_password(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(reverse('change_password'), {'current_password': 'testpass123', 'new_password': 'newpass123', 'confirm_password': 'newpass123'})
+
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('newpass123'))
+        self.assertEqual(response.status_code, 302) 
+        self.assertRedirects(response, reverse('change_password'))
+
+    def test_resetPassword_non_matching_passwords(self):
+        response = self.client.post(reverse('change_password'), {'current_password': 'testpass123', 'new_password': 'newpass1', 'confirm_password': 'new_worong_pass__123'})
+
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.check_password('newpass1'))
+
+        self.assertEqual(response.status_code, 302) 
+
+        self.assertIn(reverse('change_password'), response.url)
+
+
+class OrderDetailTestCase(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model() 
+        self.user_data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'username': 'johndoe',
+            'email': 'johndoe@example.com',
+            'password': 'testpass123',
+        }
+        self.user =  self.user_model.objects.create_user(**self.user_data)
+        self.user.is_active = True
+        self.user.save()
+
+        self.client = Client()
+
+    def order_detail_view_get(self):
+
+        self.category = Category.objects.create(category_name = 'Test category')
+        self.product = Product.objects.create(product_name="Test1", price=120, category = self.category, slug="test1-slug")
+
+        variation_category_color = VariationCategory.objects.create(name="Color")
+        variation_category_size = VariationCategory.objects.create(name="Size")
+        variation_value_color1 = VariationValue.objects.create(value="Red")
+        variation_value_color2 = VariationValue.objects.create(value="Black")
+        variation_value_size1 = VariationValue.objects.create(value="S")
+        variation_value_size2 = VariationValue.objects.create(value="XXL")
+
+        self.payment = Payment.objects.create(user=self.user,payment_id='test', payment_method='PayPal',amount_paid=377.40,status='COMPLETED')
+
+        self.order = Order.objects.create(
+            user = self.user, payment = self.payment, order_number = '1234',
+            first_name = self.user_data['first_name'], last_name = self.user_data['last_name'],
+            phone_number = '+test_number', email = self.user_data['email'],
+            address_line_1 = 'test_address_line1', country = 'USA', state = 'Colorado', city = 'Denver',
+            order_total = 377.40, tax = 7.40, status = 'New', ip = '0.0.0.0', is_ordered = True,
+        )
+
+        self.order_product1 = OrderProduct.objects.create(
+            order = self.order, payment = self.payment, user = self.user,
+            product = self.product, quantity = 2,  product_price = 125.00, ordered = True
+        )
+
+        self.order_product1.variations.add(
+            Variation.objects.create(variation_category=variation_category_color, variation_value=variation_value_color1),
+            Variation.objects.create(variation_category=variation_category_size, variation_value=variation_value_size1)
+        )
+        
+        self.order_product2 = OrderProduct.objects.create(
+            order = self.order, payment = self.payment, user = self.user,
+            product = self.product, variations = self.variations2, 
+            quantity = 1,  product_price = 120.00, ordered = True
+        )
+
+        self.order_product2.variations.add(
+            Variation.objects.create(variation_category=variation_category_color, variation_value=variation_value_color2),
+            Variation.objects.create(variation_category=variation_category_size, variation_value=variation_value_size2)
+        )
+
+        order_id = self.order.pk
+        self.order_detail = OrderProduct.objects.filter(order__order_number = order_id)
+
+        self.client.force_login(self.user)
+
+        # args=[order_id]
+        response = self.client.get(reverse('order_detail'), kwargs = {'order_id': order_id,})
+
+        self.assertIsNotNone(response.context.get('order_detail'))
+        self.assertIsNotNone(response.context.get('order'))
+        self.assertIsNotNone(response.context.get('subtotal'))
+
+        self.assertEqual(response.context.get('order_detail'), self.order)
+        self.assertEqual(response.context.get('order'), self.order)
+        self.assertEqual(response.context.get('subtotal'), 370.0)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/order_detail.html')

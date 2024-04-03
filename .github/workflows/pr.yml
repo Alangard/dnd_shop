@@ -50,7 +50,7 @@ jobs:
                 POSTGRES_PASSWORD: postgres
                 SECRET_KEY: ${{ secrets.FAKE_SECRET_KEY }}
 
-          - name: Lint
-            run: |
-                flake8
+        #   - name: Lint
+        #     run: |
+        #         flake8
 

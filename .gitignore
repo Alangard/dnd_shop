@@ -1,2 +1,2 @@
 env/
-django_secrets.env
+.env

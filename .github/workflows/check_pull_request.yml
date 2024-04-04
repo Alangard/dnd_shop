@@ -1,0 +1,56 @@
+name: Quality Assurance
+on: [pull_request, workflow_call]
+
+jobs:
+    quality-assurance:
+        name: Quality Assurance
+        runs-on: ubuntu-latest
+        container: python:3.12-slim
+
+        services:
+            db:
+                image: postgres:16.2
+                env:
+                    POSTGRES_DB: ${{ secrets.POSTGRES_NAME }}
+                    POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+                    POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+
+            # nginx:
+            #     image: nginx
+            #     # Map port 8080 on the Docker host to port 80 on the nginx container
+            #     ports:
+            #         - 8080:80
+            # redis:
+            #     image: redis
+            #     # Map TCP port 6379 on Docker host to a random free port on the Redis container
+            #     ports:
+            #         - 6379/tcp
+
+        steps:
+          - uses: actions/checkout@v2
+
+          - name: Install Dependencies
+            run: | 
+                    python -m pip install --upgrade pip 
+                    pip install -r requirements.txt
+
+          - name: Django testing
+            run: python manage.py test
+            env:
+                POSTGRES_NAME: ${{ secrets.POSTGRES_NAME }}
+                POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+                POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+                SECRET_KEY: ${{ secrets.FAKE_SECRET_KEY }}
+
+        #   - name: Lint
+        #     run: |
+        #         flake8
+

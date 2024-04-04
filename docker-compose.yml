@@ -1,23 +1,48 @@
 services:
+  # Django Service
+  #gunicorn dnd_shop.wsgi:application --bind 0.0.0.0:8000   
+  # python manage.py runserver 0.0.0.0:8000"
   api:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: >
+      bash -c "python manage.py makemigrations &&
+      python manage.py migrate &&
+      gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     ports:
       - 8000:8000
     restart: always
     depends_on:
       - db
+      - redis
     volumes:
       - .:/code
     environment:
+      - DEBUG=1
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
       - POSTGRES_NAME=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - DEBUG=${DEBUG}
     env_file:
       - ./.env
 
+  # Celery Service
+  celery:
+      build: .
+      command: celery -A config worker --loglevel=info
+      volumes:
+          - .:/code
+      environment:
+          - DEBUG=1
+          - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+          - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+          - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      depends_on:
+          - api
+          - redis
 
+  # PostgreSQL Database Service
   db:
     image: postgres:16.2
     ports:
@@ -32,7 +57,13 @@ services:
     env_file:
       - ./.env
 
+  # Redis Service
+  redis:
+    image: "redis:7.2-alpine"
 
 volumes:
   db_data:
     driver: local
+
+
+

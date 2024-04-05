@@ -1,11 +1,14 @@
 services:
   # Django Service
-  #gunicorn dnd_shop.wsgi:application --bind 0.0.0.0:8000   
-  # python manage.py runserver 0.0.0.0:8000"
+
+  # python manage.py makemigrations &&
+  #     python manage.py migrate &&
   api:
     build: .
+    container_name: DjangoAPI
     command: >
-      bash -c "python manage.py makemigrations &&
+      bash -c "python manage.py collectstatic --no-input &&
+      python manage.py makemigrations &&
       python manage.py migrate &&
       gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     ports:
@@ -16,8 +19,10 @@ services:
       - redis
     volumes:
       - .:/code
+      - static_volume:/code/static/
+      - media_volume:/code/media/
     environment:
-      - DEBUG=1
+      - DEBUG=${DEBUG}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
@@ -27,29 +32,15 @@ services:
     env_file:
       - ./.env
 
-  # Celery Service
-  celery:
-      build: .
-      command: celery -A config worker --loglevel=info
-      volumes:
-          - .:/code
-      environment:
-          - DEBUG=1
-          - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-          - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-          - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      depends_on:
-          - api
-          - redis
-
   # PostgreSQL Database Service
   db:
-    image: postgres:16.2
-    ports:
-      - 5432:5432
+    container_name: PostgreSQL
+    image: postgres:16.2-alpine
+    expose:
+      - 5432
     restart: always
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -57,13 +48,44 @@ services:
     env_file:
       - ./.env
 
+  #nginx
+  nginx:
+    image: nginx:1.25.4-alpine
+    container_name: Nginx
+    ports:
+      - 80:80
+    depends_on:
+        - api
+        - db
+    volumes:
+      - static_volume:/code/static/
+      - media_volume:/code/media/
+
+
+  # Celery Service
+  celery:
+      build: .
+      container_name: Celery
+      command: celery -A config worker --loglevel=info
+      volumes:
+          - .:/code
+      environment:
+          - DEBUG=${DEBUG}
+          - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+          - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+          - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      depends_on:
+          - api
+          - redis
+
   # Redis Service
   redis:
+    container_name: Redis
     image: "redis:7.2-alpine"
 
 volumes:
-  db_data:
-    driver: local
-
+  static_volume:
+  media_volume:
+  postgres_data:
 
 

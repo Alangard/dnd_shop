@@ -1,0 +1,33 @@
+name: Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+    #   - name: Run tests
+    #     run: |
+    #       docker-compose -f tests.yml up
+
+      - name: Build and push Docker images
+        run: |
+          docker-compose -f docker-compose.yml build
+          docker-compose -f docker-compose.yml push
+
+      - name: Deploy containers
+        run: |
+          docker-compose -f docker-compose.yml up -d

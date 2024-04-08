@@ -9,6 +9,9 @@ RUN pip install --upgrade pip
 COPY requirements.txt /code/
 RUN pip install -r requirements.txt
 
+RUN add-apt-repository ppa:certbot/certbot
+RUN apt-get update && apt-get install -y certbot
+
 COPY . /code/
 
 

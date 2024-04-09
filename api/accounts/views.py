@@ -31,9 +31,8 @@ def register(request):
                 username = form.cleaned_data['username'],
                 email = form.cleaned_data['email'],
                 password = form.cleaned_data['password'],
+                phone_number = form.cleaned_data['phone_number']
             )
-
-            user.phone_number = form.cleaned_data['phone_number']
             user.save()
 
             # user activation

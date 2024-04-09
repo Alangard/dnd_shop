@@ -4,10 +4,13 @@ from .models import Product, ProductVariations, Variation, Category
 class ProductFilter(django_filters.FilterSet):
     min_price = django_filters.NumberFilter(field_name='price', lookup_expr='gte')
     max_price = django_filters.NumberFilter(field_name='price', lookup_expr='lte')
-    category = django_filters.CharFilter(field_name='category__slug', lookup_expr='iexact')
+    category = django_filters.CharFilter(field_name='category__slug', method='filter_category')
+
+    def filter_category(self, queryset, name, value):
+        if value == '-1':
+            return queryset
+        return queryset.filter(**{name: value})
     
-
-
     class Meta:
         model = Product
         fields = ['min_price', 'max_price', 'category']
@@ -33,3 +36,6 @@ class ProductFilter(django_filters.FilterSet):
             # print(f'Filtered products: {[product.variations.all() for product in product_variations]}')
 
         return queryset
+    
+
+    

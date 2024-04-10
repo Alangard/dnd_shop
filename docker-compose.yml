@@ -17,7 +17,6 @@ services:
       - redis
     volumes:
       - .:/code
-      - www-html:/var/www/html
       - static_volume:/code/static/
       - media_volume:/code/media/
     environment:

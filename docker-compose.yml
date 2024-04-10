@@ -58,7 +58,6 @@ services:
       - api
       - db
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
       - static_volume:/code/static/

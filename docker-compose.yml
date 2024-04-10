@@ -79,7 +79,7 @@ services:
     environment:
       - LETSENCRYPT_EMAIL=${EMAIL_HOST_USER}
       - LETSENCRYPT_DOMAIN=${DOMAIN}
-    command: certonly --webroot -w /var/www/certbot --keep-until-expiring --email ${EMAIL_HOST_USER} -d ${DOMAIN} --agree-tos
+    command: certonly --webroot -w /var/www/certbot --keep-until-expiring --email testdndwebsite@gmail.com -d innkeeper.site --agree-tos
     
     # sets a trap for the TERM signal and starts a loop that executes the certbot renew command, 
     # then waits 12 hours (sleep 12h) before executing renew again. 

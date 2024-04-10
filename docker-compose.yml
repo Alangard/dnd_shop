@@ -60,6 +60,8 @@ services:
       - db
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
       - static_volume:/code/static/
       - media_volume:/code/media/
 
@@ -73,16 +75,16 @@ services:
       - nginx
     container_name: certbot
     volumes:
-      - etc-letsencrypt:/etc/letsencrypt
-      - www-html:/var/www/html
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     environment:
       - LETSENCRYPT_EMAIL=${EMAIL_HOST_USER}
       - LETSENCRYPT_DOMAIN=${DOMAIN}
-    command: certonly --webroot --webroot-path=/var/www/html --email ${EMAIL_HOST_USER} --agree-tos --no-eff-email -d ${DOMAIN}
+    command: certonly --webroot -w /var/www/certbot --keep-until-expiring --email ${EMAIL_HOST_USER} -d ${DOMAIN} --agree-tos
     
     # sets a trap for the TERM signal and starts a loop that executes the certbot renew command, 
     # then waits 12 hours (sleep 12h) before executing renew again. 
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    # entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   # Celery Service
   celery:
@@ -107,8 +109,6 @@ services:
 
 volumes:
   # will be used to store our ssl certificate and make it persistent as wel   
-  etc-letsencrypt:
-  www-html:
   static_volume:
   media_volume:
   postgres_data:

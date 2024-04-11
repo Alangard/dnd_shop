@@ -62,13 +62,13 @@ services:
       - ./certbot/www:/var/www/certbot
       - static_volume:/code/static/
       - media_volume:/code/media/
-      
-  certbot:
-    image: certbot/certbot
-    restart: always
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+
+  # certbot:
+  #   image: certbot/certbot
+  #   restart: always
+  #   volumes:
+  #     - ./certbot/conf:/etc/letsencrypt
+  #     - ./certbot/www:/var/www/certbot
 
   # Celery Service
   celery:

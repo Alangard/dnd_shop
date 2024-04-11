@@ -62,14 +62,15 @@ services:
       - ./certbot/www:/var/www/certbot
       - static_volume:/code/static/
       - media_volume:/code/media/
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
 
   certbot:
     image: certbot/certbot
-    container_name: certbot
+    restart: always
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    command: certonly --webroot -w /var/www/certbot --force-renewal --email ${EMAIL_HOST_USER} -d ${DOMAIN} --agree-tos
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   # Celery Service
   celery:

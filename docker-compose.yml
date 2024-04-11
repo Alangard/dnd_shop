@@ -9,8 +9,8 @@ services:
       python manage.py makemigrations &&
       python manage.py migrate &&
       gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
-    ports:
-      - 8000:8000
+    # ports:
+    #   - 8000:8000
     restart: always
     depends_on:
       - db

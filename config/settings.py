@@ -12,11 +12,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 
 
-load_dotenv('./.env/.env.prod') 
+load_dotenv(find_dotenv()) 
 
 
 # Quick-start development settings - unsuitable for production

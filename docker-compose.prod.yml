@@ -28,7 +28,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     env_file:
-      - ./.env/prod.env
+      - ./.env/env.prod
 
   # PostgreSQL Database Service
   db:
@@ -44,7 +44,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     env_file:
-      - ./.env/prod.env
+      - ./.env/env.prod
 
   #nginx
   nginx:
@@ -67,7 +67,7 @@ services:
       - DOMAIN=${DOMAIN}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER}
     env_file:
-      - ./.env/prod.env
+      - ./.env/env.prod
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
 
   certbot:
@@ -80,26 +80,26 @@ services:
       - DOMAIN=${DOMAIN}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER}
     env_file:
-      - ./.env/prod.env
+      - ./.env/env.prod
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   # Celery Service
   celery:
-      build: .
-      container_name: Celery
-      command: celery -A config worker --loglevel=info
-      volumes:
-          - .:/code
-      environment:
-          - DEBUG=${DEBUG}
-          - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-          - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-          - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      env_file:
-      - ./.env/prod.env
-      depends_on:
-          - api
-          - redis
+    build: .
+    container_name: Celery
+    command: celery -A config worker --loglevel=info
+    volumes:
+        - .:/code
+    environment:
+        - DEBUG=${DEBUG}
+        - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+        - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+        - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    env_file:
+      - ./.env/env.prod
+    depends_on:
+        - api
+        - redis
 
   # Redis Service
   redis:

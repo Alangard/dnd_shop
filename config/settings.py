@@ -14,9 +14,11 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv, find_dotenv
 
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-load_dotenv(find_dotenv()) 
+load_dotenv('.env/.env.prod') 
+
 
 
 # Quick-start development settings - unsuitable for production

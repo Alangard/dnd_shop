@@ -5,11 +5,11 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-# Load variables from .env/prod.env if it exists
-if [ -f ./.env/prod.env ]; then
+# Load variables from .env/.env.prod if it exists
+if [ -f ./.env/.env.prod ]; then
   while IFS= read -r line; do
     export "$line"
-  done < <(grep -v '^#' .env/prod.env)
+  done < <(grep -v '^#' .env/.env.prod)
 fi
 
 # Check if DOMAIN and EMAIL_HOST_USER are set, and if not, provide default values
@@ -21,6 +21,8 @@ rsa_key_size=4096
 data_path="./certbot"
 email="$EMAIL_HOST_USER" # Adding a valid address is strongly recommended
 staging=0 # Set to 1 if you're testing your setup to avoid hitting request limits
+
+echo "Domain = $DOMAIN , email = $EMAIL_HOST_USER"
 
 if [ -d "$data_path" ]; then
   read -p "Existing data found for $domains. Continue and replace existing certificate? (y/N) " decision
@@ -77,7 +79,7 @@ esac
 # Enable staging mode if needed
 if [ $staging != "0" ]; then staging_arg="--staging"; fi
 
-docker-compose run --rm --entrypoint "\
+docker-compose -f docker-compose.prod.yml  run --rm --entrypoint "\
   certbot certonly --webroot -w /var/www/certbot \
     $staging_arg \
     $email_arg \
@@ -88,6 +90,6 @@ docker-compose run --rm --entrypoint "\
 echo
 
 echo "### Reloading nginx ..."
-docker-compose exec nginx nginx -s reload
+docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
 
 

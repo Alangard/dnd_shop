@@ -7,7 +7,9 @@ fi
 
 # Load variables from .env/prod.env if it exists
 if [ -f ./.env/prod.env ]; then
-  export $(grep -v '^#' .env/prod.env | xargs)
+  while IFS= read -r line; do
+    export "$line"
+  done < <(grep -v '^#' .env/prod.env)
 fi
 
 # Check if DOMAIN and EMAIL_HOST_USER are set, and if not, provide default values

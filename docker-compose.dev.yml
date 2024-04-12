@@ -1,0 +1,107 @@
+services:
+  # Django Service
+
+  api:
+    build: .
+    container_name: DjangoAPI
+    command: >
+      bash -c "python manage.py collectstatic --no-input &&
+      python manage.py makemigrations &&
+      python manage.py migrate &&
+      gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
+    # ports:
+    #   - 8000:8000
+    restart: always
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/code
+      - static_volume:/code/static/
+      - media_volume:/code/media/
+    environment:
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - POSTGRES_NAME=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - ./.env/dev.env
+
+  # PostgreSQL Database Service
+  db:
+    container_name: PostgreSQL
+    image: postgres:16.2-alpine
+    expose:
+      - 5432
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - ./.env/dev.env
+
+  #nginx
+  nginx:
+    image: nginx:1.25.4-alpine
+    container_name: Nginx
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - api
+    volumes:
+      - ./templates:/etc/nginx/templates
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - static_volume:/code/static/
+      - media_volume:/code/media/
+    environment:
+      - DOMAIN=${DOMAIN}
+    env_file:
+      - ./.env/dev.env
+
+  # certbot:
+  #   image: certbot/certbot
+  #   restart: always
+  #   volumes:
+  #     - ./certbot/conf:/etc/letsencrypt
+  #     - ./certbot/www:/var/www/certbot
+
+  # Celery Service
+  celery:
+      build: .
+      container_name: Celery
+      command: celery -A config worker --loglevel=info
+      volumes:
+          - .:/code
+      environment:
+          - DEBUG=${DEBUG}
+          - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+          - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+          - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      env_file:
+        - ./.env/dev.env
+      depends_on:
+          - api
+          - redis
+
+  # Redis Service
+  redis:
+    container_name: Redis
+    image: "redis:7.2-alpine"
+
+volumes:
+  # will be used to store our ssl certificate and make it persistent as wel   
+  static_volume:
+  media_volume:
+  postgres_data:
+
+

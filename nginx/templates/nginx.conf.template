@@ -1,36 +1,35 @@
 
-
-# events {
-#         worker_connections 1024;
-# }
-# #test comment
-
+events {
+    worker_connections 1024;
+}
+#test comment
+    
 # http{
 #     server {
 #         listen 80;
 #         server_name ${DOMAIN};
-
+            
 #         location / {
 #             proxy_pass http://api:8000;
 #             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 #             proxy_set_header Host $host;
 #             proxy_redirect off;
 #         }
-
+        
 #         location ^/static/ {
 #             autoindex on;
 #             root /code/static/;
 #         }
-
+            
 #         location ^/media/ {
 #             autoindex on;
 #             root /code/media/;
 #         }
-
+        
 #     }
-# }
-
-
+# } 
+    
+    
 http{
     server {
         listen 80;

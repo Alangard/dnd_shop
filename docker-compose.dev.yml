@@ -45,8 +45,6 @@ services:
       - api
     volumes:
       - ./nginx/templates/nginx_dev.conf.template:/etc/nginx/templates
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
       - static_volume:/code/static/
       - media_volume:/code/media/
     env_file:

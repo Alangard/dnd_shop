@@ -45,7 +45,8 @@ services:
     depends_on:
       - api
     volumes:
-      - ./nginx/templates/nginx_prod.conf.template:/etc/nginx/templates
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      # - ./nginx/templates/nginx_prod.conf.template:/etc/nginx/templates
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
       - static_volume:/code/static/

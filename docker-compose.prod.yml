@@ -118,7 +118,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.myredirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.ecom.middlewares=traefik_https@docker"
+      - "traefik.http.routers.ecom.middlewares=myredirect"
       - "traefik.http.routers.ecom.rule=Host(`innkeeper.site`, `www.innkeeper.site`)"
       - "traefik.http.routers.ecom.entrypoints=web"        
       - "traefik.http.routers.ecom-secure.entrypoints=websecure"

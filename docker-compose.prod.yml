@@ -112,11 +112,13 @@ services:
       - media_volume:/code/media/
     env_file:
       - ./.env/.env.prod
-    labels:
+    labels: 
       - "traefik.enable=true"
-      - "traefik.http.routers.django.rule=Host(`django-traefik.innkeeper.site`)"
-      - "traefik.http.routers.django.tls=true"
-      - "traefik.http.routers.django.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.api.rule=Host(innkeeper.site)"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
+
 
   # PostgreSQL Database Service
   db:
@@ -130,25 +132,34 @@ services:
     env_file:
       - ./.env/.env.prod
 
-
   traefik:
-    build:
-      context: .
-      dockerfile: Dockerfile.traefik
+    image: "traefik:v2.11"
+    container_name: "traefik"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=testdndwebsite@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
-      - 80:80
-      - 443:443
+      - "443:443"
+      - "8080:8080"
     volumes:
+      - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./traefik-public-certificates:/certificates"
+
+  whoami:
+    image: "traefik/whoami"
+    container_name: "simple-service"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`dashboard-django-traefik.innkeeper.site`)"
-      - "traefik.http.routers.dashboard.tls=true"
-      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.dashboard.service=api@internal"
-      - "traefik.http.routers.dashboard.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=testuser:$$apr1$$jIKW.bdS$$eKXe4Lxjgy/rH65wP1iQe1"
+      - "traefik.http.routers.whoami.rule=Host(`innkeeper.site`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
 
   # #nginx
   # nginx:

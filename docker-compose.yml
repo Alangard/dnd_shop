@@ -12,7 +12,6 @@ services:
       restart: always
       depends_on:
         - db
-        - redis
       volumes:
         - .:/code
         - static_volume:/code/static/

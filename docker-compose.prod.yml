@@ -102,8 +102,8 @@ services:
       gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
     ports:
       - 8000:8000
-    networks: 
-      - web
+    # networks: 
+    #   - web
     restart: always
     depends_on:
       - db

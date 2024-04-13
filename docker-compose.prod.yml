@@ -103,7 +103,7 @@ services:
     ports:
       - 8000:8000
     networks: 
-      traefik_default:
+      - web
     restart: always
     depends_on:
       - db
@@ -114,15 +114,17 @@ services:
       - media_volume:/code/media/
     env_file:
       - ./.env/.env.prod
-    labels: 
-     - traefik.enable = true 
-     - traefik.http.middlewares.api_https.redirectscheme.scheme = https
-     - traefik.http.routers.api.entrypoints = web
-     - traefik.http.routers.api.middlewares = api_https@docker
-     - traefik.http.routers.api.rule = Host(`api.innkeeper.site`)
-     - traefik.http.routers.api_https.entrypoints = websecure
-     - traefik.http.routers.api_https.tls = true
-     - traefik.http.routers.api_https.tls.certresolver=le
+
+    labels:
+      - "traefik.enable=true "
+      - "traefik.http.middlewares.myredirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.ecom.middlewares = traefik_https@docker"
+      - "traefik.http.routers.ecom.rule = Host(`innkeeper.site`, `www.innkeeper.site`)"
+      - "traefik.http.routers.ecom.entrypoints=web"        
+      - "traefik.http.routers.ecom-secure.entrypoints = websecure"
+      - "traefik.http.routers.ecom-secure.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.ecom-secure.tls = true"
+    
 
 
   # PostgreSQL Database Service
@@ -141,35 +143,32 @@ services:
     image: traefik:v2.2
     restart: always
     container_name: "traefik"
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - web
     command:
-      - --api.insecure=true
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --providers.file.directory=/etc/traefik/dynamic_conf
-      - --accesslog=true
-      - --metrics.prometheus=true
-      - --entrypoints.metrics.address=:8081
-      - --metrics.prometheus.entrypoint=metrics
-      - --certificatesresolvers.le.acme.email=testdndwebsite@gmail.com
-      - --certificatesresolvers.le.acme.storage=acme.json
-      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--api.dashboard=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      - "--accesslog=true"
+      - "--metrics.prometheus=true"
+      - "--entrypoints.metrics.address=:8081"
+      - "--metrics.prometheus.entrypoint=metrics"
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
+      - "--certificatesresolvers.myhttpchallenge.acme.email=testdndwebsite@gmail.com"
+      - "--certificatesresolvers.myhttpchallenge.acme.storage=acme.json"
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /traefik/acme.json:/acme.json:rw
+      - /letsencrypt:/letsencrypt
 
-    labels:
-        - traefik.enable = true 
-        - traefik.http.middlewares.traefik_https.redirectscheme.scheme = https
-        - traefik.http.routers.traefik.entrypoints = web
-        - traefik.http.routers.traefik.middlewares = traefik_https@docker
-        - traefik.http.routers.traefik.rule = Host(`traefik.innkeeper.site`)
-        - traefik.http.routers.traefik_https.entrypoints = websecure
-        - traefik.http.routers.traefik_https.rule = Host(`traefik.innkeeper.site`)
-        - traefik.http.routers.traefik_https.tls = true
-        - traefik.http.routers.traefik_https.tls.certresolver=le
 
 
   # #nginx
@@ -230,9 +229,8 @@ volumes:
   postgres_data:
   www-html:
   etc-letsencrypt:
-  traefik-public-certificates:
 
 networks:
-  traefik_default:
-   driver: bridge
+  web:
+   external: true
 

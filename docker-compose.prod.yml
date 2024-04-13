@@ -102,6 +102,7 @@ services:
       gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
     ports:
       - 8000:8000
+    networks: traefik_default
     restart: always
     depends_on:
       - db
@@ -113,11 +114,14 @@ services:
     env_file:
       - ./.env/.env.prod
     labels: 
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host('innkeeper.site')"
-      - "traefik.http.services.api.loadbalancer.server.port=8000"
-      - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls.certresolver=myresolver"
+     - traefik.enable = true 
+     - traefik.http.middlewares.api_https.redirectscheme.scheme = https
+     - traefik.http.routers.api.entrypoints = web
+     - traefik.http.routers.api.middlewares = api_https@docker
+     - traefik.http.routers.api.rule = Host(`api.innkeeper.site`)
+     - traefik.http.routers.api_https.entrypoints = websecure
+     - traefik.http.routers.api_https.tls = true
+     - traefik.http.routers.api_https.tls.certresolver=le
 
 
   # PostgreSQL Database Service
@@ -133,24 +137,38 @@ services:
       - ./.env/.env.prod
 
   traefik:
-    image: "traefik:v2.11"
+    image: traefik:v2.2
+    restart: always
     container_name: "traefik"
     command:
-      #- "--log.level=DEBUG"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myresolver.acme.email=testdndwebsite@gmail.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "443:443"
-      - "8080:8080"
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --providers.file.directory=/etc/traefik/dynamic_conf
+      - --accesslog=true
+      - --metrics.prometheus=true
+      - --entrypoints.metrics.address=:8081
+      - --metrics.prometheus.entrypoint=metrics
+      - --certificatesresolvers.le.acme.email=testdndwebsite@gmail.com
+      - --certificatesresolvers.le.acme.storage=acme.json
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+
     volumes:
-      - "./letsencrypt:/letsencrypt"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /traefik/acme.json:/acme.json:rw
+
+    labels:
+        - traefik.enable = true 
+        - traefik.http.middlewares.traefik_https.redirectscheme.scheme = https
+        - traefik.http.routers.traefik.entrypoints = web
+        - traefik.http.routers.traefik.middlewares = traefik_https@docker
+        - traefik.http.routers.traefik.rule = Host(`traefik.innkeeper.site`)
+        - traefik.http.routers.traefik_https.entrypoints = websecure
+        - traefik.http.routers.traefik_https.rule = Host(`traefik.innkeeper.site`)
+        - traefik.http.routers.traefik_https.tls = true
+        - traefik.http.routers.traefik_https.tls.certresolver=le
 
 
   # #nginx
@@ -212,4 +230,8 @@ volumes:
   www-html:
   etc-letsencrypt:
   traefik-public-certificates:
+
+networks:
+  traefik_default:
+   driver: bridge
 

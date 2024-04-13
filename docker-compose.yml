@@ -1,0 +1,40 @@
+services:
+  api:
+      build: .
+      container_name: DjangoAPI
+      command: >
+        bash -c "python manage.py collectstatic --no-input &&
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
+      # ports:
+      #   - 8000:8000
+      restart: always
+      depends_on:
+        - db
+        - redis
+      volumes:
+        - .:/code
+        - static_volume:/code/static/
+        - media_volume:/code/media/
+      env_file:
+        - ./.env/.env.prod
+
+  # PostgreSQL Database Service
+  db:
+    container_name: PostgreSQL
+    image: postgres:16.2-alpine
+    expose:
+      - 5432
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./.env/.env.prod
+
+  
+volumes:
+  # will be used to store our ssl certificate and make it persistent as wel   
+  static_volume:
+  media_volume:
+  postgres_data:

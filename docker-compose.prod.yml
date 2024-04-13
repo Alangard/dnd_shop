@@ -119,7 +119,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.ecom.middlewares=myredirect"
       - "traefik.http.middlewares.myredirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.ecom.rule=Host(`innkeeper.site`, `www.innkeeper.site`)"
+      - "traefik.http.routers.ecom.rule=Host(`innkeeper.site`)"
       - "traefik.http.routers.ecom.entrypoints=web"        
       - "traefik.http.routers.ecom-secure.entrypoints=websecure"
       - "traefik.http.routers.ecom-secure.tls.certresolver=myhttpchallenge"

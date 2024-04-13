@@ -32,6 +32,35 @@ services:
     env_file:
       - ./.env/.env.prod
 
+  nginx:
+    image: nginx:1.15-alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot 
+      - static_volume:/code/static/
+      - media_volume:/code/media/
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    env_file:
+      - ./.env/.env.prod
+
+
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot 
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 5d & wait $${!}; done;'"
+    env_file:
+      - ./.env/.env.prod
+
   
 volumes:
   # will be used to store our ssl certificate and make it persistent as wel   

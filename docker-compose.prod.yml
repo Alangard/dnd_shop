@@ -1,4 +1,95 @@
 services:
+#   # Django Service
+
+#   api:
+#     build: .
+#     container_name: DjangoAPI
+#     command: >
+#       bash -c "python manage.py collectstatic --no-input &&
+#       python manage.py makemigrations &&
+#       python manage.py migrate &&
+#       gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
+#     ports:
+#       - 8000:8000
+#     restart: always
+#     depends_on:
+#       - db
+#       - redis
+#     volumes:
+#       - .:/code
+#       - static_volume:/code/static/
+#       - media_volume:/code/media/
+#     env_file:
+#       - ./.env/.env.prod
+
+#   # PostgreSQL Database Service
+#   db:
+#     container_name: PostgreSQL
+#     image: postgres:16.2-alpine
+#     expose:
+#       - 5432
+#     restart: always
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     env_file:
+#       - ./.env/.env.prod
+
+#   #nginx
+#   nginx:
+#     image: nginx:1.25.4-alpine
+#     container_name: Nginx
+#     restart: unless-stopped
+#     ports:
+#       - 80:80
+#       - 443:443
+#     depends_on:
+#       - api
+#     volumes:
+#       - ./nginx/conf_ssl.d:/etc/nginx/conf.d
+#       # - ./nginx/templates/nginx_prod.conf.template:/etc/nginx/templates
+#       - ./certbot/conf:/etc/letsencrypt
+#       - ./certbot/www:/var/www/certbot
+#       - static_volume:/code/static/
+#       - media_volume:/code/media/
+#     env_file:
+#       - ./.env/.env.prod
+#     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+#   certbot:
+#     image: certbot/certbot
+#     restart: unless-stopped
+#     volumes:
+#       - ./certbot/conf:/etc/letsencrypt
+#       - ./certbot/www:/var/www/certbot
+#     env_file:
+#       - ./.env/.env.prod
+#     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+#   # Celery Service
+#   celery:
+#     build: .
+#     container_name: Celery
+#     command: celery -A config worker --loglevel=info
+#     volumes:
+#         - .:/code
+#     env_file:
+#       - ./.env/.env.prod
+#     depends_on:
+#         - api
+#         - redis
+
+#   # Redis Service
+#   redis:
+#     container_name: Redis
+#     image: "redis:7.2-alpine"
+
+# volumes:
+#   # will be used to store our ssl certificate and make it persistent as wel   
+#   static_volume:
+#   media_volume:
+#   postgres_data:
+
+
   # Django Service
 
   api:
@@ -41,14 +132,15 @@ services:
     restart: unless-stopped
     ports:
       - 80:80
-      - 443:443
     depends_on:
+      - api
+    networks:
       - api
     volumes:
       - ./nginx/conf_ssl.d:/etc/nginx/conf.d
       # - ./nginx/templates/nginx_prod.conf.template:/etc/nginx/templates
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - www-html:/var/www/html
+      - etc-letsencrypt:/etc/letsencrypt
       - static_volume:/code/static/
       - media_volume:/code/media/
     env_file:
@@ -57,13 +149,16 @@ services:
 
   certbot:
     image: certbot/certbot
+    container_name: certbot
+    depends_on: 
+      - nginx
     restart: unless-stopped
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - www-html:/var/www/html
+      - etc-letsencrypt:/etc/letsencrypt
     env_file:
       - ./.env/.env.prod
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    command: certonly --webroot --webroot-path=/var/www/html --email testdndwebsite@gmail.com --agree-tos --no-eff-email -staging -d innkeeper.site
 
   # Celery Service
   celery:
@@ -88,5 +183,6 @@ volumes:
   static_volume:
   media_volume:
   postgres_data:
-
+  www-html:
+  etc-letsencrypt:
 

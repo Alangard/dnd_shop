@@ -102,7 +102,8 @@ services:
       gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
     ports:
       - 8000:8000
-    networks: traefik_default
+    networks: 
+      traefik_default:
     restart: always
     depends_on:
       - db

@@ -134,8 +134,6 @@ services:
       - 80:80
     depends_on:
       - api
-    networks:
-      - api
     volumes:
       - ./nginx/conf_ssl.d:/etc/nginx/conf.d
       # - ./nginx/templates/nginx_prod.conf.template:/etc/nginx/templates

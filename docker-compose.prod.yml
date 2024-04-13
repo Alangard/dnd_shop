@@ -125,38 +125,68 @@ services:
     env_file:
       - ./.env/.env.prod
 
-  #nginx
-  nginx:
-    image: nginx:1.25.4-alpine
-    container_name: Nginx
-    restart: unless-stopped
-    ports:
-      - 80:80
-    depends_on:
-      - api
-    volumes:
-      - ./nginx/conf_ssl.d:/etc/nginx/conf.d
-      # - ./nginx/templates/nginx_prod.conf.template:/etc/nginx/templates
-      - www-html:/var/www/html
-      - etc-letsencrypt:/etc/letsencrypt
-      - static_volume:/code/static/
-      - media_volume:/code/media/
-    env_file:
-      - ./.env/.env.prod
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
 
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    depends_on: 
-      - nginx
-    restart: unless-stopped
+  traefik:
+    image: "traefik:v2.11"
+    container_name: "traefik"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=testdndwebsite@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+      - "8080:8080"
     volumes:
-      - www-html:/var/www/html
-      - etc-letsencrypt:/etc/letsencrypt
-    env_file:
-      - ./.env/.env.prod
-    command: certonly --webroot --webroot-path=/var/www/html --email testdndwebsite@gmail.com --agree-tos --no-eff-email -staging -d innkeeper.site
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  whoami:
+    image: "traefik/whoami"
+    container_name: "simple-service"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`innkeeper.site`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
+
+  # #nginx
+  # nginx:
+  #   image: nginx:1.25.4-alpine
+  #   container_name: Nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - 80:80
+  #   depends_on:
+  #     - api
+  #   volumes:
+  #     - ./nginx/conf_ssl.d:/etc/nginx/conf.d
+  #     # - ./nginx/templates/nginx_prod.conf.template:/etc/nginx/templates
+  #     - www-html:/var/www/html
+  #     - etc-letsencrypt:/etc/letsencrypt
+  #     - static_volume:/code/static/
+  #     - media_volume:/code/media/
+  #   env_file:
+  #     - ./.env/.env.prod
+  #   command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  # certbot:
+  #   image: certbot/certbot
+  #   container_name: certbot
+  #   depends_on: 
+  #     - nginx
+  #   restart: unless-stopped
+  #   volumes:
+  #     - www-html:/var/www/html
+  #     - etc-letsencrypt:/etc/letsencrypt
+  #   env_file:
+  #     - ./.env/.env.prod
+  #   command: certonly --webroot --webroot-path=/var/www/html --email testdndwebsite@gmail.com --agree-tos --no-eff-email -staging -d innkeeper.site
 
   # Celery Service
   celery:

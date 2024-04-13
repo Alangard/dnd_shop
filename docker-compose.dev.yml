@@ -44,7 +44,8 @@ services:
     depends_on:
       - api
     volumes:
-      - ./nginx/templates/nginx_dev.conf.template:/etc/nginx/templates
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      # - ./nginx/templates/nginx_dev.conf.template:/etc/nginx/templates
       - static_volume:/code/static/
       - media_volume:/code/media/
     env_file:

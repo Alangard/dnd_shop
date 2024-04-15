@@ -70,7 +70,7 @@ services:
     ports:
       - "6000:80"
     env_file:
-      - .env
+      - ./.env/.env.dev
     # и снова мониторуем директорию nginx
     volumes:
       - ./nginx/:/etc/nginx/

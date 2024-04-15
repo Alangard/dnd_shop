@@ -73,7 +73,7 @@ services:
       - ./.env/.env.dev
     # и снова мониторуем директорию nginx
     volumes:
-      - ./nginx/:/etc/nginx/
+      - ./nginx/conf.d/:/etc/nginx/
     build:
       context: ./certbot
       dockerfile: Dockerfile

@@ -136,11 +136,12 @@ services:
       depends_on:
         - api
       volumes:
-        - ./etc/ssl:/etc/nginx/ssl
+        - ./nginx/conf_ssl.d:/etc/nginx/conf.d
+        - /etc/letsencrypt/ssl/fullchain.pem:/etc/nginx/ssl/fullchain.pem
+        - /etc/letsencrypt/ssl/privkey.pem:/etc/nginx/ssl/privkey.pem
       ports:
         - "80:80"
         - "443:443"
-        - "8443:8443"
       env_file:
         - ./.env/.env.prod
       # environment:

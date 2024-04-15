@@ -17,7 +17,8 @@ from dotenv import load_dotenv, find_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-load_dotenv('.env/.env.prod') 
+#load_dotenv('.env/.env.prod') 
+load_dotenv()
 
 
 
@@ -186,8 +187,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER") 
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = False
-# EMAIL_USE_TLS = True
+EMAIL_USE_TLS = True
 
 
 PAYPAL_CLIENT_ID = 'AVPO9NZ6lEfqRxr-8g_1HP6y3HakVto6IjOcnuV8d3_2RgyEwl2KB7-VmPHa_8tvPvo8bUjdFdufo_lI'

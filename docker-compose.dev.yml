@@ -79,8 +79,8 @@ services:
       dockerfile: Dockerfile
       # задаем переменные среды
       args:
-        EMAIL_HOST_USER: ${EMAIL_HOST_USER}
-        DOMAIN: ${DOMAIN}
+        EMAIL_HOST_USER: testdndwebsite@gmail.com
+        DOMAIN: innkeeper.site
 
   # Celery Service
   celery:

@@ -115,18 +115,6 @@ services:
     env_file:
       - ./.env/.env.prod
 
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ecom.middlewares=myredirect"
-      - "traefik.http.middlewares.myredirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.ecom.rule=Host(`innkeeper.site`)"
-      - "traefik.http.routers.ecom.entrypoints=web"        
-      - "traefik.http.routers.ecom-secure.entrypoints=websecure"
-      - "traefik.http.routers.ecom-secure.tls.certresolver=myhttpchallenge"
-      - "traefik.http.routers.ecom-secure.tls=true"
-    
-
-
   # PostgreSQL Database Service
   db:
     container_name: PostgreSQL
@@ -139,37 +127,30 @@ services:
     env_file:
       - ./.env/.env.prod
 
-  traefik:
-    image: traefik:v2.2
-    restart: always
-    container_name: "traefik"
-    ports:
-      - "80:80"
-      - "443:443"
-    networks:
-      - web
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--api.dashboard=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-
-      - "--accesslog=true"
-      - "--metrics.prometheus=true"
-      - "--entrypoints.metrics.address=:8081"
-      - "--metrics.prometheus.entrypoint=metrics"
-      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
-      - "--certificatesresolvers.myhttpchallenge.acme.email=testdndwebsite@gmail.com"
-      - "--certificatesresolvers.myhttpchallenge.acme.storage=acme.json"
-      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
-
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /letsencrypt:/letsencrypt
-
-
+  nginx:
+      build: .
+      image: umputun/nginx-le:latest
+      hostname: nginx
+      restart: always
+      container_name: nginx
+      depends_on:
+        - api
+      volumes:
+        - ./etc/ssl:/etc/nginx/ssl
+      ports:
+        - "80:80"
+        - "443:443"
+        - "8443:8443"
+      env_file:
+        - ./.env/.env.prod
+      # environment:
+      #     - TZ=GMT
+      #     - LETSENCRYPT=true
+      #     - LE_EMAIL=youremail@example.com
+      #     - LE_FQDN=yourdomain.com
+          #- SSL_CERT=le-crt.pem
+          #- SSL_KEY=le-key.pem
+          #- SSL_CHAIN_CERT=le-chain-crt.pem
 
   # #nginx
   # nginx:

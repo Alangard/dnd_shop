@@ -34,53 +34,21 @@ services:
     env_file:
       - ./.env/.env.dev
 
-  # #nginx
-  # nginx:
-  #   image: nginx:1.25.4-alpine
-  #   container_name: Nginx
-  #   restart: unless-stopped
-  #   ports:
-  #     - 80:80
-  #   depends_on:
-  #     - api
-  #   volumes:
-  #     - ./nginx/templates/nginx_dev.conf.template:/etc/nginx/templates
-  #     - static_volume:/code/static/
-  #     - media_volume:/code/media/
-  #   env_file:
-  #     - ./.env/.env.dev
+  #nginx
   nginx:
     image: nginx:1.25.4-alpine
     container_name: Nginx
     restart: unless-stopped
+    ports:
+      - 80:80
     depends_on:
       - api
-    # монтируем директорию nginx и сертификат с ключом
     volumes:
-      - ./nginx/conf.d/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro
-      - ./nginx/cert.pem:/etc/cert.pem
-      - ./nginx/key.pem:/etc/key.pem
+      - ./nginx/templates/nginx_dev.conf.template:/etc/nginx/templates
       - static_volume:/code/static/
       - media_volume:/code/media/
-    ports:
-      - "80:80"
-      - "443:443"
-
-  certbot:
-    ports:
-      - "6000:80"
     env_file:
       - ./.env/.env.dev
-    # и снова мониторуем директорию nginx
-    volumes:
-      - ./nginx/conf.d/:/etc/nginx/conf.d/
-    build:
-      context: ./certbot
-      dockerfile: Dockerfile
-      # задаем переменные среды
-      args:
-        EMAIL_HOST_USER: testdndwebsite@gmail.com
-        DOMAIN: innkeeper.site
 
   # Celery Service
   celery:

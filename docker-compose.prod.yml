@@ -102,12 +102,10 @@ services:
       gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
     ports:
       - 8000:8000
-    # networks: 
-    #   - web
     restart: always
     depends_on:
       - db
-      - redis
+      # - redis
     volumes:
       - .:/code
       - static_volume:/code/static/
@@ -165,12 +163,12 @@ services:
       - ./.env/.env.prod
     depends_on:
         - api
-        - redis
+        # - redis
 
   # Redis Service
-  redis:
-    container_name: Redis
-    image: "redis:7.2-alpine"
+  # redis:
+  #   container_name: Redis
+  #   image: "redis:7.2-alpine"
 
 volumes:
   # will be used to store our ssl certificate and make it persistent as wel   

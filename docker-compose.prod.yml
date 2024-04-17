@@ -141,7 +141,7 @@ services:
       depends_on:
         - api
       volumes:
-        - ./nginx/conf_ssl.d:/etc/nginx/conf.d
+        - ./nginx/conf_ssl.d/nginx.conf:/etc/nginx/conf.d/nginx.conf
         - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
 
         # - /var/run/docker.sock:/tmp/docker.sock:ro 

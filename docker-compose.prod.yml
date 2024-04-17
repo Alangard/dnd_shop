@@ -1,3 +1,5 @@
+version: "2"
+
 services:
 #   # Django Service
 
@@ -112,6 +114,9 @@ services:
       - media_volume:/code/media/
     env_file:
       - ./.env/.env.prod
+    environment:
+      - VIRTUAL_HOST=innkeeper.site
+      - LETSENCRYPT_HOST=innkeeper.site
 
   # PostgreSQL Database Service
   db:
@@ -126,7 +131,9 @@ services:
       - ./.env/.env.prod
 
   nginx:
-      build: .
+      build:
+        dockerfile: ./Dockerfile
+        context: ./nginx/
       image: umputun/nginx-le:latest
       hostname: nginx
       restart: always
@@ -136,11 +143,17 @@ services:
       volumes:
         - ./nginx/conf_ssl.d:/etc/nginx/conf.d
         - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
+
+        - certs:/etc/nginx/certs
+        - vhost:/etc/nginx/vhost.d
+        - html:/user/share/nginx/html
+        - /var/run/docker.sock:/var/run/docker.sock:ro
       ports:
         - "80:80"
         - "443:443"
       env_file:
         - ./.env/.env.prod
+
       # environment:
       #     - TZ=GMT
       #     - LETSENCRYPT=true
@@ -149,6 +162,15 @@ services:
           #- SSL_CERT=le-crt.pem
           #- SSL_KEY=le-key.pem
           #- SSL_CHAIN_CERT=le-chain-crt.pem
+
+  acme_companion:
+    image: nginxproxy/acme-companion:2.2
+    container_name: acme_companion
+    volumes_from:
+      - nginx
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - acme:/etc/acme.sh
 
 
   # Celery Service
@@ -174,4 +196,8 @@ volumes:
   static_volume:
   media_volume:
   postgres_data:
+  certs:
+  vhost:
+  html:
+  acme:
 

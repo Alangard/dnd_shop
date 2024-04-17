@@ -1,0 +1,9 @@
+    # serve static files
+    location ^/static/ {
+        alias /code/static/;
+    }
+
+    # serve media files
+    location ^/media/ {
+        root /code/media/;
+    }

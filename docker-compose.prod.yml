@@ -107,7 +107,7 @@ services:
     restart: always
     depends_on:
       - db
-      - redis
+      # - redis
     volumes:
       - .:/code
       - static_volume:/code/static/
@@ -178,23 +178,23 @@ services:
       - acme:/etc/acme.sh
 
 
-  # Celery Service
-  celery:
-    build: .
-    container_name: Celery
-    command: celery -A config worker --loglevel=info
-    volumes:
-        - .:/code
-    env_file:
-      - ./.env/.env.prod
-    depends_on:
-        - api
-        - redis
+  # # Celery Service
+  # celery:
+  #   build: .
+  #   container_name: Celery
+  #   command: celery -A config worker --loglevel=info
+  #   volumes:
+  #       - .:/code
+  #   env_file:
+  #     - ./.env/.env.prod
+  #   depends_on:
+  #       - api
+  #       - redis
 
-  #Redis Service
-  redis:
-    container_name: Redis
-    image: "redis:7.2-alpine"
+  # #Redis Service
+  # redis:
+  #   container_name: Redis
+  #   image: "redis:7.2-alpine"
 
 volumes:
   # will be used to store our ssl certificate and make it persistent as wel   

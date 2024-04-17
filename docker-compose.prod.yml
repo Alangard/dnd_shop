@@ -153,38 +153,6 @@ services:
           #- SSL_KEY=le-key.pem
           #- SSL_CHAIN_CERT=le-chain-crt.pem
 
-  # #nginx
-  # nginx:
-  #   image: nginx:1.25.4-alpine
-  #   container_name: Nginx
-  #   restart: unless-stopped
-  #   ports:
-  #     - 80:80
-  #   depends_on:
-  #     - api
-  #   volumes:
-  #     - ./nginx/conf_ssl.d:/etc/nginx/conf.d
-  #     # - ./nginx/templates/nginx_prod.conf.template:/etc/nginx/templates
-  #     - www-html:/var/www/html
-  #     - etc-letsencrypt:/etc/letsencrypt
-  #     - static_volume:/code/static/
-  #     - media_volume:/code/media/
-  #   env_file:
-  #     - ./.env/.env.prod
-  #   command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
-
-  # certbot:
-  #   image: certbot/certbot
-  #   container_name: certbot
-  #   depends_on: 
-  #     - nginx
-  #   restart: unless-stopped
-  #   volumes:
-  #     - www-html:/var/www/html
-  #     - etc-letsencrypt:/etc/letsencrypt
-  #   env_file:
-  #     - ./.env/.env.prod
-  #   command: certonly --webroot --webroot-path=/var/www/html --email testdndwebsite@gmail.com --agree-tos --no-eff-email -staging -d innkeeper.site
 
   # Celery Service
   celery:
@@ -209,10 +177,4 @@ volumes:
   static_volume:
   media_volume:
   postgres_data:
-  www-html:
-  etc-letsencrypt:
-
-networks:
-  web:
-   external: true
 

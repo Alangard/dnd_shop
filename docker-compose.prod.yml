@@ -135,8 +135,7 @@ services:
         - api
       volumes:
         - ./nginx/conf_ssl.d:/etc/nginx/conf.d
-        - /etc/letsencrypt/ssl/fullchain.pem:/etc/letsencrypt/ssl/fullchain.pem
-        - /etc/letsencrypt/ssl/privkey.pem:/etc/letsencrypt/ssl/privkey.pem
+        - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
       ports:
         - "80:80"
         - "443:443"

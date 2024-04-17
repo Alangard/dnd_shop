@@ -131,23 +131,23 @@ services:
       - ./.env/.env.prod
 
   nginx:
-      build:
-        dockerfile: ./Dockerfile
-        context: ./nginx/
-      # image: umputun/nginx-le:latest
+      # build:
+      #   dockerfile: ./Dockerfile
+      #   context: ./nginx/
+      image: nginx:1.25-alpine
       hostname: nginx
       restart: always
       container_name: nginx
       depends_on:
         - api
       volumes:
-        # - ./nginx/conf_ssl.d:/etc/nginx/conf.d
-        # - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
+        - ./nginx/conf_ssl.d:/etc/nginx/conf.d
+        - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
 
-        - /var/run/docker.sock:/tmp/docker.sock:ro 
-        - certs:/etc/nginx/certs 
-        - vhost:/etc/nginx/vhost.d 
-        - html:/usr/share/nginx/html 
+        # - /var/run/docker.sock:/tmp/docker.sock:ro 
+        # - certs:/etc/nginx/certs 
+        # - vhost:/etc/nginx/vhost.d 
+        # - html:/usr/share/nginx/html 
 
       ports:
         - "80:80"
@@ -155,30 +155,21 @@ services:
       env_file:
         - ./.env/.env.prod
 
-      # environment:
-      #     - TZ=GMT
-      #     - LETSENCRYPT=true
-      #     - LE_EMAIL=youremail@example.com
-      #     - LE_FQDN=yourdomain.com
-          #- SSL_CERT=le-crt.pem
-          #- SSL_KEY=le-key.pem
-          #- SSL_CHAIN_CERT=le-chain-crt.pem
+  # whoami:
+  #   image: jwilder/whoami
+  #   environment:
+  #     - VIRTUAL_HOST=innkeeper.site
 
-  whoami:
-    image: jwilder/whoami
-    environment:
-      - VIRTUAL_HOST=innkeeper.site
-
-  acme_companion:
-    image: nginxproxy/acme-companion:2.2
-    container_name: acme_companion
-    volumes_from:
-      - nginx
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - acme:/etc/acme.sh
-    environment:
-      - DEFAULT_EMAIL=testdndwebsite@gmail.com
+  # acme_companion:
+  #   image: nginxproxy/acme-companion:2.2
+  #   container_name: acme_companion
+  #   volumes_from:
+  #     - nginx
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - acme:/etc/acme.sh
+  #   environment:
+  #     - DEFAULT_EMAIL=testdndwebsite@gmail.com
 
 
   # Celery Service

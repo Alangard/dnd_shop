@@ -141,13 +141,13 @@ services:
       depends_on:
         - api
       volumes:
-        - ./nginx/conf_ssl.d:/etc/nginx/conf.d
-        - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
+        # - ./nginx/conf_ssl.d:/etc/nginx/conf.d
+        # - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
 
         - certs:/etc/nginx/certs
         - vhost:/etc/nginx/vhost.d
         - html:/user/share/nginx/html
-        - /var/run/docker.sock:/var/run/docker.sock:ro
+        - /var/run/docker.sock:/tmp/docker.sock:ro 
       ports:
         - "80:80"
         - "443:443"
@@ -169,7 +169,7 @@ services:
     volumes_from:
       - nginx
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro 
       - acme:/etc/acme.sh
 
 

@@ -107,7 +107,7 @@ services:
     restart: always
     depends_on:
       - db
-      # - redis
+      - redis
     volumes:
       - .:/code
       - static_volume:/code/static/
@@ -134,7 +134,7 @@ services:
       build:
         dockerfile: ./Dockerfile
         context: ./nginx/
-      image: umputun/nginx-le:latest
+      # image: umputun/nginx-le:latest
       hostname: nginx
       restart: always
       container_name: nginx
@@ -144,9 +144,9 @@ services:
         # - ./nginx/conf_ssl.d:/etc/nginx/conf.d
         # - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
 
-        - certs:/etc/nginx/certs
-        - vhost:/etc/nginx/vhost.d
-        - html:/user/share/nginx/html
+        # - certs:/etc/nginx/certs
+        # - vhost:/etc/nginx/vhost.d
+        # - html:/user/share/nginx/html
         - /var/run/docker.sock:/tmp/docker.sock:ro 
       ports:
         - "80:80"
@@ -178,23 +178,23 @@ services:
       - acme:/etc/acme.sh
 
 
-  # # Celery Service
-  # celery:
-  #   build: .
-  #   container_name: Celery
-  #   command: celery -A config worker --loglevel=info
-  #   volumes:
-  #       - .:/code
-  #   env_file:
-  #     - ./.env/.env.prod
-  #   depends_on:
-  #       - api
-  #       - redis
+  # Celery Service
+  celery:
+    build: .
+    container_name: Celery
+    command: celery -A config worker --loglevel=info
+    volumes:
+        - .:/code
+    env_file:
+      - ./.env/.env.prod
+    depends_on:
+        - api
+        - redis
 
-  # #Redis Service
-  # redis:
-  #   container_name: Redis
-  #   image: "redis:7.2-alpine"
+  #Redis Service
+  redis:
+    container_name: Redis
+    image: "redis:7.2-alpine"
 
 volumes:
   # will be used to store our ssl certificate and make it persistent as wel   

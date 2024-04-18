@@ -151,8 +151,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    env_file:
-      - ./.env/.env.prod
+    environment:
+      - DOMAIN=innkeeper.site
 
   certbot:
     build:
@@ -166,8 +166,7 @@ services:
       - certbot-certs:/etc/letsencrypt/
     depends_on:
       - proxy
-    env_file:
-      - ./.env/.env.prod
+
 
   # whoami:
   #   image: jwilder/whoami

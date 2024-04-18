@@ -159,8 +159,8 @@ services:
       context: ./docker/certbot
     command: echo "Skipping..."
     environment:
-      - EMAIL=${EMAIL_HOST_USER}
-      - DOMAIN=${DOMAIN}
+      - EMAIL=testdndwebsite@gmail.com
+      - DOMAIN=innkeeper.site
     volumes:
       - certbot-web:/vol/www
       - certbot-certs:/etc/letsencrypt/

@@ -95,7 +95,8 @@ services:
   # Django Service
 
   api:
-    build: .
+    build:
+      context: .
     container_name: DjangoAPI
     command: >
       bash -c "python manage.py collectstatic --no-input &&
@@ -131,30 +132,42 @@ services:
       - ./.env/.env.prod
 
   nginx:
-      # build:
-      #   dockerfile: ./Dockerfile
-      #   context: ./nginx/
-      image: nginx:1.25-alpine
-      hostname: nginx
-      restart: always
-      container_name: nginx
-      depends_on:
-        - api
-      volumes:
-        - ./nginx/conf_ssl.d/nginx.conf:/etc/nginx/conf.d/nginx.conf
-        - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
+    build:
+      context: ./docker/proxy
+    restart: always
+    container_name: nginx
+    depends_on:
+      - api
+    volumes:
+      - certbot-web:/vol/www
+      - proxy-dhparams:/vol/proxy
+      - certbot-certs:/etc/letsencrypt
 
-        # - /var/run/docker.sock:/tmp/docker.sock:ro 
-        # - certs:/etc/nginx/certs 
-        # - vhost:/etc/nginx/vhost.d 
-        # - html:/usr/share/nginx/html 
+      # - /var/run/docker.sock:/tmp/docker.sock:ro 
+      # - certs:/etc/nginx/certs 
+      # - vhost:/etc/nginx/vhost.d 
+      # - html:/usr/share/nginx/html 
 
-      ports:
-        - "80:80"
-        - "443:443"
-      env_file:
-        - ./.env/.env.prod
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - ./.env/.env.prod
 
+  certbot:
+    build:
+      context: ./docker/certbot
+    command: echo "Skipping..."
+    environment:
+      - EMAIL=${EMAIL_HOST_USER}
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - certbot-web:/vol/www
+      - certbot-certs:/etc/letsencrypt/
+    depends_on:
+      - proxy
+    env_file:
+      - ./.env/.env.prod
 
   # whoami:
   #   image: jwilder/whoami
@@ -196,8 +209,8 @@ volumes:
   static_volume:
   media_volume:
   postgres_data:
-  certs:
-  vhost:
-  html:
-  acme:
+
+  certbot-web:
+  proxy-dhparams:
+  certbot-certs:
 

@@ -17,7 +17,9 @@ services:
         - static_volume:/code/static/
         - media_volume:/code/media/
       env_file:
-        - ./.env/.env.prod
+        - ./.env/.env.dev
+      networks:
+        api_network:
 
   # PostgreSQL Database Service
   db:
@@ -30,14 +32,16 @@ services:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - ./.env/.env.prod
+    networks:
+      api_network:
 
   nginx:
     image: nginx:1.15-alpine
     restart: unless-stopped
     volumes:
-      - ./nginx/templates:/etc/nginx/templates
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot 
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/.well-known/acme-challenge/
       - static_volume:/code/static/
       - media_volume:/code/media/
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
@@ -48,15 +52,17 @@ services:
       - api
     env_file:
       - ./.env/.env.prod
+    networks:
+      api_network:
 
 
   certbot:
     image: certbot/certbot
     restart: unless-stopped
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot 
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 5d & wait $${!}; done;'"
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot 
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot-path /var/www/certbot; sleep 5d & wait $${!}; done;'"
     env_file:
       - ./.env/.env.prod
 
@@ -66,3 +72,8 @@ volumes:
   static_volume:
   media_volume:
   postgres_data:
+  certbot_conf:
+  certbot_www:
+    
+networks:
+  api_network:

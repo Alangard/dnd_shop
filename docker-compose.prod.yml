@@ -95,23 +95,15 @@ services:
   # Django Service
 
   api:
-    build: .
+    build:
+      context: .
     container_name: DjangoAPI
     command: >
       bash -c "python manage.py collectstatic --no-input &&
       python manage.py makemigrations &&
       python manage.py migrate &&
       gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
-    ports:
-      - 8000:8000
     restart: always
-    depends_on:
-      - db
-      - redis
-    volumes:
-      - .:/code
-      - static_volume:/code/static/
-      - media_volume:/code/media/
     env_file:
       - ./.env/.env.prod
     environment:
@@ -131,9 +123,6 @@ services:
       - ./.env/.env.prod
 
   nginx:
-      # build:
-      #   dockerfile: ./Dockerfile
-      #   context: ./nginx/
       image: nginx:1.25-alpine
       hostname: nginx
       restart: always
@@ -144,35 +133,11 @@ services:
         - ./nginx/conf_ssl.d/nginx.conf:/etc/nginx/conf.d/nginx.conf
         - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
 
-        # - /var/run/docker.sock:/tmp/docker.sock:ro 
-        # - certs:/etc/nginx/certs 
-        # - vhost:/etc/nginx/vhost.d 
-        # - html:/usr/share/nginx/html 
-
-
       ports:
         - "80:80"
         - "443:443"
       env_file:
         - ./.env/.env.prod
-
-
-  # whoami:
-  #   image: jwilder/whoami
-  #   environment:
-  #     - VIRTUAL_HOST=innkeeper.site
-
-  # acme_companion:
-  #   image: nginxproxy/acme-companion:2.2
-  #   container_name: acme_companion
-  #   volumes_from:
-  #     - nginx
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock:ro
-  #     - acme:/etc/acme.sh
-  #   environment:
-  #     - DEFAULT_EMAIL=testdndwebsite@gmail.com
-
 
   # Celery Service
   celery:
@@ -197,8 +162,8 @@ volumes:
   static_volume:
   media_volume:
   postgres_data:
-  certs:
-  vhost:
-  html:
-  acme:
+
+  certbot-web:
+  proxy-dhparams:
+  certbot-certs:
 

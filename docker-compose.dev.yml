@@ -2,7 +2,8 @@ services:
   # Django Service
 
   api:
-    build: .
+    build:
+      context: .
     container_name: DjangoAPI
     command: >
       bash -c "python manage.py collectstatic --no-input &&
@@ -14,7 +15,6 @@ services:
     restart: always
     depends_on:
       - db
-      - redis
     volumes:
       - .:/code
       - static_volume:/code/static/
@@ -34,23 +34,7 @@ services:
     env_file:
       - ./.env/.env.dev
 
-  #nginx
-  nginx:
-    image: nginx:1.25.4-alpine
-    container_name: Nginx
-    restart: unless-stopped
-    ports:
-      - 80:80
-    depends_on:
-      - api
-    volumes:
-      - ./nginx/templates/nginx_dev.conf.template:/etc/nginx/templates
-      - static_volume:/code/static/
-      - media_volume:/code/media/
-    env_file:
-      - ./.env/.env.dev
-
-  # Celery Service
+    # Celery Service
   celery:
     build: .
     container_name: Celery
@@ -58,12 +42,12 @@ services:
     volumes:
         - .:/code
     env_file:
-      - ./.env/.env.dev
+      - ./.env/.env.prod
     depends_on:
         - api
         - redis
 
-  # Redis Service
+  #Redis Service
   redis:
     container_name: Redis
     image: "redis:7.2-alpine"

@@ -33,7 +33,7 @@ DEBUG = int(os.environ.get("DEBUG", default=0))
 PRODUCTION = int(os.environ.get("PRODUCTION", default=1))
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(' ')
 INTERNAL_IPS = ["127.0.0.1",]
-
+CSRF_TRUSTED_ORIGINS = [f'https://{os.environ.get('DOMAIN')}']
 
 # Application definition
 

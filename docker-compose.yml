@@ -17,7 +17,7 @@ services:
         - static_volume:/code/static/
         - media_volume:/code/media/
       env_file:
-        - ./.env/.env.dev
+        - ./.env/.env.prod
       networks:
         api_network:
 
@@ -39,9 +39,8 @@ services:
     image: nginx:1.15-alpine
     restart: unless-stopped
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx_prod.conf:/etc/nginx/nginx.conf
       - /etc/letsencrypt:/etc/letsencrypt
-      # - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot/
       - static_volume:/code/static/
       - media_volume:/code/media/
@@ -61,7 +60,6 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
-      # - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot/
     env_file:
       - ./.env/.env.prod
@@ -72,7 +70,6 @@ volumes:
   static_volume:
   media_volume:
   postgres_data:
-  certbot_conf:
   certbot_www:
     
 networks:

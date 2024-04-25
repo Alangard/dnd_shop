@@ -17,7 +17,7 @@ services:
         - static_volume:/code/static/
         - media_volume:/code/media/
       env_file:
-        - ./.env/.env.prod
+        - ./.env/.env.dev
       networks:
         api_network:
 

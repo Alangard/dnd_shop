@@ -39,7 +39,8 @@ services:
     image: nginx:1.15-alpine
     restart: unless-stopped
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx_prod.conf:/etc/nginx/nginx.conf
       - /etc/letsencrypt:/etc/letsencrypt
       - certbot_www:/var/www/certbot/
       - static_volume:/code/static/

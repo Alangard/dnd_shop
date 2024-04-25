@@ -1,114 +1,25 @@
-version: "2"
-
 services:
-#   # Django Service
-
-#   api:
-#     build: .
-#     container_name: DjangoAPI
-#     command: >
-#       bash -c "python manage.py collectstatic --no-input &&
-#       python manage.py makemigrations &&
-#       python manage.py migrate &&
-#       gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
-#     ports:
-#       - 8000:8000
-#     restart: always
-#     depends_on:
-#       - db
-#       - redis
-#     volumes:
-#       - .:/code
-#       - static_volume:/code/static/
-#       - media_volume:/code/media/
-#     env_file:
-#       - ./.env/.env.prod
-
-#   # PostgreSQL Database Service
-#   db:
-#     container_name: PostgreSQL
-#     image: postgres:16.2-alpine
-#     expose:
-#       - 5432
-#     restart: always
-#     volumes:
-#       - postgres_data:/var/lib/postgresql/data
-#     env_file:
-#       - ./.env/.env.prod
-
-#   #nginx
-#   nginx:
-#     image: nginx:1.25.4-alpine
-#     container_name: Nginx
-#     restart: unless-stopped
-#     ports:
-#       - 80:80
-#       - 443:443
-#     depends_on:
-#       - api
-#     volumes:
-#       - ./nginx/conf_ssl.d:/etc/nginx/conf.d
-#       # - ./nginx/templates/nginx_prod.conf.template:/etc/nginx/templates
-#       - ./certbot/conf:/etc/letsencrypt
-#       - ./certbot/www:/var/www/certbot
-#       - static_volume:/code/static/
-#       - media_volume:/code/media/
-#     env_file:
-#       - ./.env/.env.prod
-#     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
-
-#   certbot:
-#     image: certbot/certbot
-#     restart: unless-stopped
-#     volumes:
-#       - ./certbot/conf:/etc/letsencrypt
-#       - ./certbot/www:/var/www/certbot
-#     env_file:
-#       - ./.env/.env.prod
-#     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-
-#   # Celery Service
-#   celery:
-#     build: .
-#     container_name: Celery
-#     command: celery -A config worker --loglevel=info
-#     volumes:
-#         - .:/code
-#     env_file:
-#       - ./.env/.env.prod
-#     depends_on:
-#         - api
-#         - redis
-
-#   # Redis Service
-#   redis:
-#     container_name: Redis
-#     image: "redis:7.2-alpine"
-
-# volumes:
-#   # will be used to store our ssl certificate and make it persistent as wel   
-#   static_volume:
-#   media_volume:
-#   postgres_data:
-
-
-  # Django Service
-
   api:
-    build:
-      context: .
-    container_name: DjangoAPI
-    command: >
-      bash -c "python manage.py collectstatic --no-input &&
-      python manage.py makemigrations &&
-      python manage.py migrate &&
-      gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
-    restart: always
-    env_file:
-      - ./.env/.env.prod
-    environment:
-      - VIRTUAL_HOST=innkeeper.site
-      - LETSENCRYPT_HOST=innkeeper.site
+      build: .
+      container_name: DjangoAPI
+      command: >
+        bash -c "python manage.py collectstatic --no-input &&
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 200 --workers=5"
+      # ports:
+      #   - 8000:8000
+      restart: always
+      depends_on:
+        - db
+      volumes:
+        - .:/code
+        - static_volume:/code/static/
+        - media_volume:/code/media/
+      env_file:
+        - ./.env/.env.prod
+      networks:
+        api_network:
 
   # PostgreSQL Database Service
   db:
@@ -121,25 +32,30 @@ services:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - ./.env/.env.prod
+    networks:
+      api_network:
 
   nginx:
-      image: nginx:1.25-alpine
-      hostname: nginx
-      restart: always
-      container_name: nginx
-      depends_on:
-        - api
-      volumes:
-        - ./nginx/conf_ssl.d/nginx.conf:/etc/nginx/conf.d/nginx.conf
-        - /etc/letsencrypt/ssl:/etc/letsencrypt/ssl
+    image: nginx:1.15-alpine
+    restart: unless-stopped
+    volumes:
+      # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx_prod.conf:/etc/nginx/nginx.conf
+      - /etc/letsencrypt:/etc/letsencrypt
+      - certbot_www:/var/www/certbot/
+      - static_volume:/code/static/
+      - media_volume:/code/media/
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    env_file:
+      - ./.env/.env.prod
+    networks:
+      api_network:
 
-      ports:
-        - "80:80"
-        - "443:443"
-      env_file:
-        - ./.env/.env.prod
-
-  # Celery Service
+# Celery Service
   celery:
     build: .
     container_name: Celery
@@ -151,19 +67,23 @@ services:
     depends_on:
         - api
         - redis
+    networks:
+      api_network:
 
   #Redis Service
   redis:
     container_name: Redis
     image: "redis:7.2-alpine"
+    networks:
+      api_network:
 
+  
 volumes:
   # will be used to store our ssl certificate and make it persistent as wel   
   static_volume:
   media_volume:
   postgres_data:
-
-  certbot-web:
-  proxy-dhparams:
-  certbot-certs:
-
+  certbot_www:
+    
+networks:
+  api_network:

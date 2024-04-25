@@ -63,7 +63,7 @@ services:
     volumes:
         - .:/code
     env_file:
-      - ./.env/.env.prod
+      - ./.env/.env.dev
     depends_on:
         - api
         - redis

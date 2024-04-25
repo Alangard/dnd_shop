@@ -41,9 +41,8 @@ services:
     volumes:
       # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
 
-      # - ./nginx/nginx_prod.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx_prod.conf:/etc/nginx/nginx.conf
 
-      - ./nginx/default.prod.conf.template:/etc/nginx/templates/default.prod.conf.template
       - /etc/letsencrypt:/etc/letsencrypt
       - certbot_www:/var/www/certbot/
       - static_volume:/code/static/

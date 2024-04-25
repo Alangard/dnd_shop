@@ -39,10 +39,7 @@ services:
     image: nginx:1.15-alpine
     restart: unless-stopped
     volumes:
-      # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-
-      # - ./nginx/nginx_prod.conf:/etc/nginx/nginx.conf
-
+      # path template to use env variables
       - ./nginx/nginx_prod.conf:/etc/nginx/conf.d/nginx.tmpl
 
       - /etc/letsencrypt:/etc/letsencrypt
@@ -56,6 +53,7 @@ services:
       - api
     env_file:
       - ./.env/.env.prod
+    # use env variables
     command: /bin/sh -c "envsubst < /etc/nginx/conf.d/nginx.tmpl > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"
     networks:
       api_network:

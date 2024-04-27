@@ -9,6 +9,7 @@ from .models import Account, UserProfile
 from ..carts.models import Cart, CartItem
 from ..orders.models import Order, OrderProduct
 from ..carts.views import _cart_id
+from django.conf import settings
 
 #verification email
 from django.contrib.sites.shortcuts import get_current_site
@@ -36,7 +37,7 @@ def register(request):
             user.save()
 
             # user activation
-            current_site = get_current_site(request)
+            current_site = settings.DOMAIN_NAME
             mail_subject = f'Account activation on {current_site}'
             message = render_to_string('accounts/account_verification_email.html', {
                 'user': user,
@@ -147,7 +148,7 @@ def forgotPassword(request):
             user = Account.objects.get(email__exact=email)
 
             # reset password send email
-            current_site = get_current_site(request)
+            current_site = settings.DOMAIN_NAME
             mail_subject = f'Reset your password on {current_site}'
             message = render_to_string('accounts/reset_password_email.html', {
                 'user': user,

@@ -33,7 +33,8 @@ DEBUG = int(os.environ.get("DEBUG", default=0))
 PRODUCTION = int(os.environ.get("PRODUCTION", default=1))
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(' ')
 INTERNAL_IPS = ["127.0.0.1",]
-CSRF_TRUSTED_ORIGINS = [f'https://{os.environ.get('DOMAIN')}', f'http://{os.environ.get('DOMAIN')}']
+DOMAIN_NAME = os.environ.get('DOMAIN')
+CSRF_TRUSTED_ORIGINS = [f'https://{DOMAIN_NAME}', f'http://{DOMAIN_NAME}']
 
 # Application definition
 
@@ -190,15 +191,14 @@ MESSAGE_TAGS = {messages.ERROR: 'danger',}
 # EMAIL_USE_TLS = True
 
 EMAIL_HOST = "smtp.gmail.com"
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_PORT = 587
-EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-SERVER_EMAIL = EMAIL_HOST_USER
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_ADMIN = EMAIL_HOST_USER
 
 PAYPAL_CLIENT_ID = 'AVPO9NZ6lEfqRxr-8g_1HP6y3HakVto6IjOcnuV8d3_2RgyEwl2KB7-VmPHa_8tvPvo8bUjdFdufo_lI'
 SECURE_CROSS_ORIGIN_OPENER_POLICY='same-origin-allow-popups' #Necessary to access the creation of a new PayPal payment window

@@ -38,6 +38,7 @@ def register(request):
 
             # user activation
             current_site = settings.DOMAIN_NAME
+            
             mail_subject = f'Account activation on {current_site}'
             message = render_to_string('accounts/account_verification_email.html', {
                 'user': user,
@@ -48,7 +49,7 @@ def register(request):
             to_email = form.cleaned_data['email']
             send_email = EmailMessage(mail_subject, message, to=[to_email,])
             send_email.send()
-            return redirect(f'/accounts/login/?command=verification&email={form.cleaned_data['email']}/')
+            return redirect(f'/accounts/login/?command=verification&email={form.cleaned_data['email']}')
         else:
             return HttpResponse(status=201)
     else:

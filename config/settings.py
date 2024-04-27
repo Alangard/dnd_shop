@@ -183,11 +183,20 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {messages.ERROR: 'danger',}
 
 #SMTP_CONFIGURATION
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER") 
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER") 
+# EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+# EMAIL_USE_TLS = True
+
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = True
+SERVER_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 PAYPAL_CLIENT_ID = 'AVPO9NZ6lEfqRxr-8g_1HP6y3HakVto6IjOcnuV8d3_2RgyEwl2KB7-VmPHa_8tvPvo8bUjdFdufo_lI'

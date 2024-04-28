@@ -13,6 +13,7 @@ class AccountModelTest(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
 
         self.super_user_data = {

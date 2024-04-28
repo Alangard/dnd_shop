@@ -38,7 +38,7 @@ class MyAccountManager(BaseUserManager):
             username=username,
             email=self.normalize_email(email),
             password=password,
-            phone_number=f'admin_test_phone_{str(uuid.uuid4())[:8]}'
+            phone_number= phone_number or f'admin_test_phone_{str(uuid.uuid4())[:8]}'
         )
         
         user.is_admin = True

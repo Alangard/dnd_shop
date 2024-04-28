@@ -48,7 +48,7 @@ class RegisterTestCase(TestCase):
         
         self.assertEqual(len(mail.outbox), 1)  # Check if one email was sent
         
-        self.assertRedirects(response, '/accounts/login/?command=verification&email=janedoe@example.com/')  # Check if the response redirects to the correct URL
+        self.assertRedirects(response, '/accounts/login/?command=verification&email=janedoe@example.com')  # Check if the response redirects to the correct URL
 
         
 

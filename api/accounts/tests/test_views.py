@@ -49,6 +49,7 @@ class RegisterTestCase(TestCase):
         self.assertEqual(len(mail.outbox), 1)  # Check if one email was sent
         
         self.assertRedirects(response, '/accounts/login/?command=verification&email=janedoe@example.com/')  # Check if the response redirects to the correct URL
+
         
 
 class LoginTestCase(TestCase):
@@ -61,6 +62,7 @@ class LoginTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True
@@ -160,6 +162,7 @@ class LogoutTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True
@@ -187,6 +190,7 @@ class AccountActivationTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.client = Client()
@@ -216,6 +220,7 @@ class ForgotPasswordTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True
@@ -249,6 +254,7 @@ class ResetPasswordValidateTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True
@@ -283,6 +289,7 @@ class ResetPasswordTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True
@@ -322,6 +329,7 @@ class DashboardTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True
@@ -385,6 +393,7 @@ class MyOrdersTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True
@@ -437,6 +446,7 @@ class EditProfileTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True
@@ -491,6 +501,7 @@ class ChangePasswordTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True
@@ -536,6 +547,7 @@ class OrderDetailTestCase(TestCase):
             'username': 'johndoe',
             'email': 'johndoe@example.com',
             'password': 'testpass123',
+            'phone_number': '+1234567890',
         }
         self.user =  self.user_model.objects.create_user(**self.user_data)
         self.user.is_active = True

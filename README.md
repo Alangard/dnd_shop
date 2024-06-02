@@ -39,6 +39,21 @@ If you don't have access to the [author's account](https://github.com/Alangard/)
 git clone https://github.com/Alangard/dnd_shop.git
 ```
 
+## Accessing dockerhub
+For regions where dockerhub has been discontinued, you should:
+
+1. Create a docker settings file `daemon.json` in a directory:
+```
+/etc/docker/daemon.json
+```
+2. Configurate a proxy through timeweb resource:
+```
+{ "registry-mirrors" : [ "https://dockerhub.timeweb.cloud" ] }
+```
+3. Restart the docker configuration:
+```
+systemctl reload docker
+```
 
 ## Installing packages 
 
